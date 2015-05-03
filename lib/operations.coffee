@@ -6,29 +6,11 @@ Path  = require 'path'
 Glob  = require 'glob'
 Trash = require 'trash'
 
-# TODO DELETE
-exists   = (path) -> Fs.existsSync path
-absolute = (path) -> Fs.absolute path
-isDir    = (path) -> Fs.isDirectorySync path
-isFile   = (path) -> Fs.isFileSync path
-glob      = (path...) -> Glob.sync Path.resolve path...
-resolve  = (path...) ->
-    resolved = Path.resolve path...
-    if Fs.exists(resolved)
-        Fs.realpathSync Fs.absolute resolved
-    else
-        resolved
-parse   = (path) ->
-    _.extend Path.parse(path),
-        exists: Fs.exists(path)
-        isFile: Fs.isFileSync(path)
-        isDir:  Fs.isDirectorySync(path)
-        isLink: Fs.isSymbolicLinkSync(path)
-
 class Operation
-################################################################################
-# Section: Path/FileSystem utilities (static)
-################################################################################
+
+    ############################################################################
+    # Section: Path/FileSystem utilities (static)
+    ############################################################################
 
     @absolute: (path) -> Fs.absolute path
     @relative: (from, to) -> Path.relative(from, to)
@@ -37,19 +19,29 @@ class Operation
     @isFile:   (path) -> Fs.isFileSync path
     @isLink:   (path) -> Fs.isSymbolicLinkSync path
 
-    @list:      (path) -> Fs.listSync path
-    @listFiles: (path) -> _.filter(Fs.listSync path, (p) -> Fs.isFileSync(p))
-    @listDirs:  (path) -> _.filter(Fs.listSync path, (p) -> Fs.isDirectorySync(p))
+    @list:      (path, type=null) ->
+        paths = Fs.listSync path
+        if type isnt null
+            return _.filter(paths, (p) -> Fs.isFileSync(p)) if type == 'file'
+            return _.filter(paths, (p) -> Fs.isDirectorySync(p)) if type == 'dir'
+        else
+            return paths
+
+    @listBasename: (path, type=null) -> _.map(@list(path, type), Path.basename)
+
     @listTree:  (path) -> Fs.listTreeSync path
 
     @glob:    (path...) -> Glob.sync Path.resolve path...
 
     @resolve: (path...) ->
+        path = for p in path
+            Fs.normalize p
         resolved = Path.resolve path...
         if Fs.exists(resolved)
             Fs.realpathSync Fs.absolute resolved
         else
             resolved
+
     @parse: (path) ->
         _.extend Path.parse(path),
             exists: Fs.exists(path)
@@ -57,9 +49,10 @@ class Operation
             isDir:  Fs.isDirectorySync(path)
             isLink: Fs.isSymbolicLinkSync(path)
 
-################################################################################
-# Section: Operators
-################################################################################
+    ############################################################################
+    # Section: Operators
+    ############################################################################
+
     multiple: true
     files:    true
     dirs:     true
@@ -114,22 +107,20 @@ class Open extends Operation
 class Move extends Operation
     execute: (target) ->
         super(target)
-        @target = resolve(@target)
+        @target = @resolve(@target)
 
         throw new Error('No entries on which to perform') unless @sources?
 
-        throw new Error("Target does not exist: #{@target}") unless exists(@target)
-        # throw new Error("Target is not a directory: #{@target}") unless isDir(@target)
+        unless @exists(@target)
+            throw new Error("Target does not exist: #{@target}")
 
-        console.log @target
-        targetStat = parse(@target)
-        if targetStat.isFile
+        if @isFile(@target)
             throw new Error("Target is a file: #{@target}")
 
         for source in @sources
-            sourceStat = parse(source)
-            target = resolve(@target, sourceStat.base)
-            @action(source, target)
+            sourceStat = @parse(source)
+            destinationPath = @resolve(@target, sourceStat.base)
+            @action(source, destinationPath)
 
     action: (source, target) ->
         Fs.moveSync(source, target)
@@ -147,13 +138,12 @@ class Rename extends Operation
         unless @sources.length == 1
             throw new Error("Multiple sources not allowed")
 
-        if exists(@target)
+        if @exists(@target)
             throw new Error("Path already exists: #{@target}")
 
         unless @target.match /^([\/~]|\w:\\\\)/
-            sourceStat = parse(@sources[0])
-            console.log sourceStat
-            @target = resolve(sourceStat.dir, @target)
+            sourceStat = @parse(@sources[0])
+            @target = @resolve(sourceStat.dir, @target)
 
         Fs.renameSync(@sources[0], @target)
 
@@ -163,9 +153,9 @@ class MakeFile extends Operation
 
     execute: (target) ->
         super(target)
-        @target = resolve(@target)
+        @target = @resolve(@target)
 
-        if exists(@target)
+        if @exists(@target)
             throw new Error("Path already exists: #{@target}")
 
         Fs.closeSync Fs.openSync(@target, 'wx')
@@ -176,9 +166,9 @@ class MakeDir extends Operation
 
     execute: (target) ->
         super(target)
-        @target = resolve(@target)
+        @target = @resolve(@target)
 
-        if exists(@target)
+        if @exists(@target)
             throw new Error("Path already exists: #{@target}")
 
         Fs.mkdirSync(@target)
@@ -205,13 +195,4 @@ module.exports = {
     Operation, Open,
     Move, Copy, Rename,
     MakeFile, MakeDir,
-    Delete
-}
-
-# chlog = resolve(__dirname, '..', 'CHANGELOG.md')
-# log = resolve(__dirname, '..', 'LOG.md')
-# operation = new Delete('/home/romgrk/github/filrk/he')
-# operation.setTarget 'xANGELOG.md'
-# operation.execute()
-
-console.log Operation.list Operation.resolve(__dirname, '..')
+    Delete }
