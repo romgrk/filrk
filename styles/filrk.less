@@ -4,8 +4,14 @@
 // for a full listing of what's available.
 @import "ui-variables";
 
-@panel-bg: rgba(255, 0, 0, 0.6);
-@panel-border: black;
+@panel-bg:           rgba(255, 255, 255, 0.1);
+@panel-border:       black;
+
+@path-bar-bg:    rgba(0, 0, 0, 0.2);
+@file-panel-bg:  rgba(0, 0, 0, 0.1);
+@command-bar-bg: rgba(0, 0, 0, 0.2);
+
+@selection-panel-bg: rgba(0, 0, 0, 0.5);
 
 atom-panel.filrk-panel {
     display: inline-block;
@@ -14,8 +20,8 @@ atom-panel.filrk-panel {
     right: 0;
     z-index: 9999;
 
-    width: 500px;
-    height: 100px;
+    // width: 500px;
+    // height: 100px;
     margin: 0;
     // padding: 10px;
 
@@ -25,4 +31,32 @@ atom-panel.filrk-panel {
 }
 
 .filrk {
+    display: flex;
+    width: 700px;
+    min-height: 250px;
+
+    .left-panel {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+
+        .path-bar {
+            flex-basis: @component-line-height;
+            background-color: @path-bar-bg;
+        }
+        .file-panel {
+            flex-grow: 1;
+            background-color: @file-panel-bg;
+        }
+        .command-bar {
+            flex-basis: @component-line-height;
+            background-color: @command-bar-bg;
+        }
+    }
+
+    .right-panel {
+        flex-grow: 0;
+        flex-basis: 200px;
+        background-color: @selection-panel-bg;
+    }
 }

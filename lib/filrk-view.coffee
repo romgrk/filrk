@@ -6,51 +6,30 @@ _       = require 'underscore-plus'
 Fs      = require 'fs-plus'
 Path    = require 'path'
 Glob    = require 'glob'
-{$, $$} = require 'atom-space-pen-views'
 
-{Operation, Open, Move} = require './operations'
+{CompositeDisposable} = require 'atom'
+{$, $$, View} = require 'space-pen'
 
-# Frequently used functions
-exists  = (path) -> Fs.existsSync path
-isDir   = (path) -> Fs.isDirectorySync path
-isFile  = (path) -> Fs.isFileSync path
-glob    = (path...) -> Glob.sync Path.resolve __dirname, path...
-resolve = (path...) ->
-    resolved = Path.resolve __dirname, path...
-    if Fs.exists(resolved)
-        Fs.realpathSync Fs.absolute resolved
-    else
-        resolved
-parse   = (path) ->
-    _.extend Path.parse(path),
-        exists: Fs.exists(path)
-        isFile: Fs.isFileSync(path)
-        isDir:  Fs.isDirectorySync(path)
+FileOp = require './operations'
 
-module.exports = class FilrkView
+module.exports = class FilrkView extends View
+    ############################################################################
+    # Section: html content of the view's element
+    ############################################################################
+    @content: ->
+        @div class: 'filrk', =>
+            @div class: 'left-panel', =>
+                @div class: 'path-bar'
+                @div class: 'file-panel'
+                @div class: 'command-bar', =>
+                    @tag 'atom-text-editor', mini:true, outlet: 'input'
+            @div class: 'right-panel', =>
+                @ol =>
+                    @li '~/file.txt'
+                    @li '~/git/otherfile.txt'
 
-    panel: null
-    panelView: null
 
-    element: null
-    container: null
-
-    constructor: (serializedState) ->
-        @element = document.createElement('div')
-        @container = $(@element)
-        @container.addClass 'flirk'
-
-        @panel = atom.workspace.addModalPanel(item: @element, visible: false)
-        @panelView = $(atom.views.getView(@panel))
-        @panelView.addClass 'filrk-panel'
-        @panelView.removeClass 'modal'
-        @panelView.removeClass 'overlay'
-        @panelView.removeClass 'from-top'
-
-        @container.append( $$ ->
-            @div class: 'text-info', 'hello'
-            @div 'yo'
-        )
+    initialize: () ->
 
     # Tear down any state and detach
     destroy: ->
