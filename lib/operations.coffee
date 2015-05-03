@@ -124,13 +124,8 @@ class Rename extends Operation
 
 module.exports = {Operation, Open, Move, Copy}
 
-# chlog = resolve('..', 'menus')
-# copy = new Copy(chlog)
-# move.setTarget resolve('..', 'styles')
-# copy.execute(resolve('..', 'styles'))
-
-chlog = resolve(__dirname, '..', 'CHANGELOG.md')
-log = resolve(__dirname, '..', 'LOG.md')
-operation = new Rename(chlog)
-operation.setTarget 'xANGELOG.md'
-operation.execute()
+# chlog = resolve(__dirname, '..', 'CHANGELOG.md')
+# log = resolve(__dirname, '..', 'LOG.md')
+# operation = new Rename(chlog)
+# operation.setTarget 'xANGELOG.md'
+# operation.execute()
