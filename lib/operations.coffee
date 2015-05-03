@@ -6,12 +6,13 @@ Path  = require 'path'
 Glob  = require 'glob'
 Trash = require 'trash'
 
-exists  = (path) -> Fs.existsSync path
-isDir   = (path) -> Fs.isDirectorySync path
-isFile  = (path) -> Fs.isFileSync path
+# TODO DELETE
+exists   = (path) -> Fs.existsSync path
 absolute = (path) -> Fs.absolute path
-glob    = (path...) -> Glob.sync Path.resolve path...
-resolve = (path...) ->
+isDir    = (path) -> Fs.isDirectorySync path
+isFile   = (path) -> Fs.isFileSync path
+glob      = (path...) -> Glob.sync Path.resolve path...
+resolve  = (path...) ->
     resolved = Path.resolve path...
     if Fs.exists(resolved)
         Fs.realpathSync Fs.absolute resolved
@@ -22,16 +23,43 @@ parse   = (path) ->
         exists: Fs.exists(path)
         isFile: Fs.isFileSync(path)
         isDir:  Fs.isDirectorySync(path)
-
-# { root: '/',
-#   dir: '/home/romgrk/github',
-#   base: 'filrk',
-#   ext: '',
-#   name: 'filrk',
-#   isFile: false,
-#   isDir: true }
+        isLink: Fs.isSymbolicLinkSync(path)
 
 class Operation
+################################################################################
+# Section: Path/FileSystem utilities (static)
+################################################################################
+
+    @absolute: (path) -> Fs.absolute path
+    @relative: (from, to) -> Path.relative(from, to)
+    @exists:   (path) -> Fs.existsSync path
+    @isDir:    (path) -> Fs.isDirectorySync path
+    @isFile:   (path) -> Fs.isFileSync path
+    @isLink:   (path) -> Fs.isSymbolicLinkSync path
+
+    @list:      (path) -> Fs.listSync path
+    @listFiles: (path) -> _.filter(Fs.listSync path, (p) -> Fs.isFileSync(p))
+    @listDirs:  (path) -> _.filter(Fs.listSync path, (p) -> Fs.isDirectorySync(p))
+    @listTree:  (path) -> Fs.listTreeSync path
+
+    @glob:    (path...) -> Glob.sync Path.resolve path...
+
+    @resolve: (path...) ->
+        resolved = Path.resolve path...
+        if Fs.exists(resolved)
+            Fs.realpathSync Fs.absolute resolved
+        else
+            resolved
+    @parse: (path) ->
+        _.extend Path.parse(path),
+            exists: Fs.exists(path)
+            isFile: Fs.isFileSync(path)
+            isDir:  Fs.isDirectorySync(path)
+            isLink: Fs.isSymbolicLinkSync(path)
+
+################################################################################
+# Section: Operators
+################################################################################
     multiple: true
     files:    true
     dirs:     true
@@ -173,10 +201,17 @@ class Delete extends Operation
             for path in @sources
                 FsEx.deleteSync path
 
-module.exports = {Operation, Open, Move, Copy, Rename, MakeFile, MakeDir}
+module.exports = {
+    Operation, Open,
+    Move, Copy, Rename,
+    MakeFile, MakeDir,
+    Delete
+}
 
 # chlog = resolve(__dirname, '..', 'CHANGELOG.md')
 # log = resolve(__dirname, '..', 'LOG.md')
 # operation = new Delete('/home/romgrk/github/filrk/he')
 # operation.setTarget 'xANGELOG.md'
 # operation.execute()
+
+console.log Operation.list Operation.resolve(__dirname, '..')
