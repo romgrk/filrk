@@ -10,3 +10,7 @@
 'atom-workspace':
     'ctrl-alt-p': 'filrk:toggle'
     'ctrl-alt-space': 'filrk:run'
+
+'.filrk atom-text-editor.mini':
+    'enter': 'core:confirm'
+    'space': 'filrk:autocomplete'

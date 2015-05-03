@@ -17,6 +17,7 @@
     "glob": "^5.0.5",
     "space-pen": "^5.1.1",
     "trash": "^1.4.1",
-    "underscore-plus": "^1.6.6"
+    "underscore-plus": "^1.6.6",
+    "watchjs": "https://github.com/melanke/Watch.JS/tarball/master"
   }
 }

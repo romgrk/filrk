@@ -42,6 +42,7 @@ module.exports = Filrk =
             @panel.hide()
         else
             @panel.show()
+            @filrkView.focus()
 
     serialize: ->
         # filrkViewState: @filrkView.serialize()

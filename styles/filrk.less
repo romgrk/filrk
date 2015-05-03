@@ -5,11 +5,11 @@
 @import "ui-variables";
 
 @panel-bg:           rgba(255, 255, 255, 0.1);
-@panel-border:       black;
+@panel-border:       red;
 
-@path-bar-bg:    rgba(0, 0, 0, 0.2);
-@file-panel-bg:  rgba(0, 0, 0, 0.1);
-@command-bar-bg: rgba(0, 0, 0, 0.2);
+@path-bar-bg:    rgba(255, 255, 255, 0.5);
+@file-panel-bg:  rgba(255, 255, 255, 0.7);
+@command-bar-bg: rgba(255, 255, 255, 0.3);
 
 @selection-panel-bg: rgba(0, 0, 0, 0.5);
 
@@ -25,7 +25,7 @@ atom-panel.filrk-panel {
     margin: 0;
     // padding: 10px;
 
-    background: @panel-bg;
+    // background: @panel-bg;
     border: 1px solid @panel-border;
     box-shadow: 0px 0px 25px 10px fade(#000000, 30%);
 }
@@ -43,6 +43,7 @@ atom-panel.filrk-panel {
         .path-bar {
             flex-basis: @component-line-height;
             background-color: @path-bar-bg;
+            color: white;
         }
         .file-panel {
             flex-grow: 1;
@@ -58,5 +59,6 @@ atom-panel.filrk-panel {
         flex-grow: 0;
         flex-basis: 200px;
         background-color: @selection-panel-bg;
+        color: white;
     }
 }
