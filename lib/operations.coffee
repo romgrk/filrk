@@ -47,7 +47,6 @@ class Operation
     #
     # Returns nothing.
     execute: (target) ->
-        throw new Error('No entries on which to perform') unless @sources?
         @target = target if target?
 
     # Public: setter for the files/dirs on which the operation will apply
@@ -78,6 +77,9 @@ class Operation
 class Open extends Operation
     execute: ->
         super()
+
+        throw new Error('No entries on which to perform') unless @sources?
+
         for path in @sources
             atom.workspace.open(path)
 
@@ -85,6 +87,8 @@ class Move extends Operation
     execute: (target) ->
         super(target)
         @target = resolve(@target)
+
+        throw new Error('No entries on which to perform') unless @sources?
 
         throw new Error("Target does not exist: #{@target}") unless exists(@target)
         # throw new Error("Target is not a directory: #{@target}") unless isDir(@target)
@@ -108,6 +112,9 @@ class Copy extends Operation
 
 class Rename extends Operation
     execute: (target) ->
+        super(target)
+
+        throw new Error('No entry on which to perform') unless @sources?
 
         unless @sources.length == 1
             throw new Error("Multiple sources not allowed")
@@ -122,10 +129,23 @@ class Rename extends Operation
 
         Fs.renameSync(@sources[0], @target)
 
-module.exports = {Operation, Open, Move, Copy}
+class MakeFile extends Operation
+    constructor: (target) ->
+        @setTarget target
+
+    execute: (target) ->
+        super(target)
+        @target = resolve(@target)
+
+        if exists(@target)
+            throw new Error("Path already exists: #{@target}")
+
+        Fs.closeSync Fs.openSync(@target, 'wx')
+
+module.exports = {Operation, Open, Move, Copy, Rename}
 
 # chlog = resolve(__dirname, '..', 'CHANGELOG.md')
 # log = resolve(__dirname, '..', 'LOG.md')
-# operation = new Rename(chlog)
+# operation = new MakeFile(log)
 # operation.setTarget 'xANGELOG.md'
 # operation.execute()
