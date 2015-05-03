@@ -142,7 +142,20 @@ class MakeFile extends Operation
 
         Fs.closeSync Fs.openSync(@target, 'wx')
 
-module.exports = {Operation, Open, Move, Copy, Rename}
+class MakeDir extends Operation
+    constructor: (target) ->
+        @setTarget target
+
+    execute: (target) ->
+        super(target)
+        @target = resolve(@target)
+
+        if exists(@target)
+            throw new Error("Path already exists: #{@target}")
+
+        Fs.mkdirSync(@target)
+
+module.exports = {Operation, Open, Move, Copy, Rename, MakeFile}
 
 # chlog = resolve(__dirname, '..', 'CHANGELOG.md')
 # log = resolve(__dirname, '..', 'LOG.md')
