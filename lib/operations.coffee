@@ -7,9 +7,10 @@ Glob = require 'glob'
 exists  = (path) -> Fs.existsSync path
 isDir   = (path) -> Fs.isDirectorySync path
 isFile  = (path) -> Fs.isFileSync path
-glob    = (path...) -> Glob.sync Path.resolve __dirname, path...
+absolute = (path) -> Fs.absolute path
+glob    = (path...) -> Glob.sync Path.resolve path...
 resolve = (path...) ->
-    resolved = Path.resolve __dirname, path...
+    resolved = Path.resolve path...
     if Fs.exists(resolved)
         Fs.realpathSync Fs.absolute resolved
     else
@@ -72,7 +73,7 @@ class Operation
     #
     # Returns nothing.
     setTarget: (path) ->
-        @target = resolve(path)
+        @target = path
 
 class Open extends Operation
     execute: ->
@@ -83,6 +84,7 @@ class Open extends Operation
 class Move extends Operation
     execute: (target) ->
         super(target)
+        @target = resolve(@target)
 
         throw new Error("Target does not exist: #{@target}") unless exists(@target)
         # throw new Error("Target is not a directory: #{@target}") unless isDir(@target)
@@ -93,7 +95,7 @@ class Move extends Operation
             throw new Error("Target is a file: #{@target}")
 
         for source in @sources
-            sourceStat = parse source
+            sourceStat = parse(source)
             target = resolve(@target, sourceStat.base)
             @action(source, target)
 
@@ -104,9 +106,31 @@ class Copy extends Operation
     action: (source, target) ->
         Fs.copySync(source, target)
 
+class Rename extends Operation
+    execute: (target) ->
+
+        unless @sources.length == 1
+            throw new Error("Multiple sources not allowed")
+
+        if exists(@target)
+            throw new Error("Path already exists: #{@target}")
+
+        unless @target.match /^([\/~]|\w:\\\\)/
+            sourceStat = parse(@sources[0])
+            console.log sourceStat
+            @target = resolve(sourceStat.dir, @target)
+
+        Fs.renameSync(@sources[0], @target)
+
 module.exports = {Operation, Open, Move, Copy}
 
 # chlog = resolve('..', 'menus')
 # copy = new Copy(chlog)
 # move.setTarget resolve('..', 'styles')
 # copy.execute(resolve('..', 'styles'))
+
+chlog = resolve(__dirname, '..', 'CHANGELOG.md')
+log = resolve(__dirname, '..', 'LOG.md')
+operation = new Rename(chlog)
+operation.setTarget 'xANGELOG.md'
+operation.execute()
