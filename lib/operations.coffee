@@ -1,8 +1,10 @@
 
-_    = require 'underscore-plus'
-Fs   = require 'fs-plus'
-Path = require 'path'
-Glob = require 'glob'
+_     = require 'underscore-plus'
+Fs    = require 'fs-plus'
+FsEx  = require 'fs-extra'
+Path  = require 'path'
+Glob  = require 'glob'
+Trash = require 'trash'
 
 exists  = (path) -> Fs.existsSync path
 isDir   = (path) -> Fs.isDirectorySync path
@@ -76,8 +78,6 @@ class Operation
 
 class Open extends Operation
     execute: ->
-        super()
-
         throw new Error('No entries on which to perform') unless @sources?
 
         for path in @sources
@@ -155,10 +155,28 @@ class MakeDir extends Operation
 
         Fs.mkdirSync(@target)
 
-module.exports = {Operation, Open, Move, Copy, Rename, MakeFile}
+class Delete extends Operation
+    realDelete: false
+
+    constructor: (sources, real=false) ->
+        super(sources)
+        @realDelete = real
+
+    execute: (real=false) ->
+        @realDelete = real
+
+        throw new Error('No entries on which to perform') unless @sources?
+
+        unless @realDelete
+            Trash @sources
+        else
+            for path in @sources
+                FsEx.deleteSync path
+
+module.exports = {Operation, Open, Move, Copy, Rename, MakeFile, MakeDir}
 
 # chlog = resolve(__dirname, '..', 'CHANGELOG.md')
 # log = resolve(__dirname, '..', 'LOG.md')
-# operation = new MakeFile(log)
+# operation = new Delete('/home/romgrk/github/filrk/he')
 # operation.setTarget 'xANGELOG.md'
 # operation.execute()
