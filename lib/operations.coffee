@@ -6,6 +6,8 @@ Path  = require 'path'
 Glob  = require 'glob'
 Trash = require 'trash'
 
+HIDDEN_FILE = /\/\.[^\/]+$/
+
 class Operation
 
     ############################################################################
@@ -14,20 +16,40 @@ class Operation
 
     @absolute: (path) -> Fs.absolute path
     @relative: (from, to) -> Path.relative(from, to)
+    @dirname:  (path) -> Path.dirname path
+    @basename: (path) -> Path.basename path
+
     @exists:   (path) -> Fs.existsSync path
     @isDir:    (path) -> Fs.isDirectorySync path
     @isFile:   (path) -> Fs.isFileSync path
     @isLink:   (path) -> Fs.isSymbolicLinkSync path
 
-    @list:      (path, type=null) ->
-        paths = Fs.listSync path
-        if type isnt null
-            return _.filter(paths, (p) -> Fs.isFileSync(p)) if type == 'file'
-            return _.filter(paths, (p) -> Fs.isDirectorySync(p)) if type == 'dir'
-        else
-            return paths
+    @list:      (path, options={}) ->
 
-    @listBasename: (path, type=null) -> _.map(@list(path, type), Path.basename)
+        files   = options.files ? true
+        dirs    = options.dirs ? true
+        visible = options.visible ? true
+        hidden  = options.hidden ? true
+        base    = options.base ? false
+
+        paths = Fs.listSync path
+
+        unless files
+            paths = _.filter(paths, (p) -> not Operation.isFile p)
+
+        unless dirs
+            paths = _.filter(paths, (p) -> not Operation.isDir p)
+
+        unless visible
+            paths = _.filter(paths, (p) -> p.match(HIDDEN_FILE))
+
+        unless hidden
+            paths = _.filter(paths, (p) -> not p.match(HIDDEN_FILE))
+
+        if base
+            paths = _.map(paths, Path.basename)
+
+        return paths
 
     @listTree:  (path) -> Fs.listTreeSync path
 
@@ -42,12 +64,32 @@ class Operation
         else
             resolved
 
-    @parse: (path) ->
+    @details: (path) ->
         _.extend Path.parse(path),
             exists: Fs.exists(path)
             isFile: Fs.isFileSync(path)
             isDir:  Fs.isDirectorySync(path)
             isLink: Fs.isSymbolicLinkSync(path)
+
+    @unique: (path) ->
+        unless Operation.exists(path)
+            return path
+
+        details       = Operation.details path
+        base          = details.base
+        numberedRegex = /(.*)\((\d+)\)(\.[\w\d]+)?$/
+
+        if match = base.match(numberedRegex)
+            console.log match
+            num = parseInt(match[2]) + 1
+            newName = match[1] + "(#{num})"
+            newName += match[3] if match[3]?
+        else
+            newName = details.name + "(1)" + details.ext
+
+        newPath = Operation.resolve(details.dir, newName)
+        return Operation.unique newPath
+
 
     ############################################################################
     # Section: Operators
@@ -63,8 +105,12 @@ class Operation
     # Public: constructor
     #
     # * `source` array of files/dirs on which the operation will apply
-    constructor: (sources) ->
-        @setSource sources
+    constructor: (sources...) ->
+        if sources? and sources.length isnt 0
+            if _.isArray(sources[0])
+                @setSource sources[0]
+            else
+                @setSource sources
 
     # Public: abstract, the operation implementation
     #
@@ -82,12 +128,13 @@ class Operation
         unless @multiple
             throw new Error("Multiple entries not allowed") if sources.length isnt 1
         for s in sources
-            throw new Error("Following path does not exist: #{s}") unless exists(s)
-            isFile = Fs.isFileSync s
-            throw new Error("Files not allowed as source") if (not @files and isFile)
-            isDir = Fs.isDirectorySync s
-            throw new Error("Directories not allowed as source") if (not @dirs and isDir)
-            @sources.push resolve(s)
+            unless Operation.exists(s)
+                throw new Error("Following path does not exist: #{s}")
+            if (not @files) and Operation.isFile(s)
+                throw new Error("Files not allowed as source")
+            if (not @dirs) and Operation.isDir(s)
+                throw new Error("Directories not allowed as source")
+            @sources.push Operation.resolve(s)
 
     # Public: set operation target
     #
@@ -107,29 +154,42 @@ class Open extends Operation
 class Move extends Operation
     execute: (target) ->
         super(target)
-        @target = @resolve(@target)
+        @target = Operation.resolve(@target)
 
         throw new Error('No entries on which to perform') unless @sources?
 
-        unless @exists(@target)
+        unless Operation.exists(@target)
             throw new Error("Target does not exist: #{@target}")
 
-        if @isFile(@target)
+        if Operation.isFile(@target)
             throw new Error("Target is a file: #{@target}")
 
         for source in @sources
-            sourceStat = @parse(source)
-            destinationPath = @resolve(@target, sourceStat.base)
+            sourceBase = Operation.basename source
+            destinationPath = Operation.resolve(@target, sourceBase)
             @action(source, destinationPath)
 
     action: (source, target) ->
         Fs.moveSync(source, target)
 
-class Copy extends Operation
+class Copy extends Move
     action: (source, target) ->
-        Fs.copySync(source, target)
+        if source == target and not(Operation.isDir(source) and Operation.isDir(target))
+            details = Operation.details target
+            target = Operation.resolve(
+                details.dir,
+                "#{details.name}_copy#{details.ext}")
+            console.log target
+        if Operation.isDir(source)
+            Fs.copySync(source, Operation.unique(target))
+        else
+            rdStream = Fs.createReadStream source
+            wrStream = Fs.createWriteStream Operation.unique target
+            rdStream.pipe wrStream
 
 class Rename extends Operation
+    multiple: false
+
     execute: (target) ->
         super(target)
 
@@ -138,37 +198,36 @@ class Rename extends Operation
         unless @sources.length == 1
             throw new Error("Multiple sources not allowed")
 
-        if @exists(@target)
+        if Operation.exists(@target)
             throw new Error("Path already exists: #{@target}")
 
-        unless @target.match /^([\/~]|\w:\\\\)/
-            sourceStat = @parse(@sources[0])
-            @target = @resolve(sourceStat.dir, @target)
+        unless Path.isAbsolute @target
+            sourceDir = Operation.dirname(@sources[0])
+            @target = Operation.resolve(sourceDir, @target)
 
         Fs.renameSync(@sources[0], @target)
 
 class MakeFile extends Operation
-    constructor: (target) ->
-        @setTarget target
+    constructor: (target...) ->
+        if target? and target.length isnt 0
+            @setTarget Operation.resolve(target...)
 
-    execute: (target) ->
-        super(target)
-        @target = @resolve(@target)
 
-        if @exists(@target)
+    execute: (target...) ->
+        if target? and target.length isnt 0
+            @setTarget Operation.resolve(target...)
+
+        if Operation.exists(@target)
             throw new Error("Path already exists: #{@target}")
 
         Fs.closeSync Fs.openSync(@target, 'wx')
 
-class MakeDir extends Operation
-    constructor: (target) ->
-        @setTarget target
+class MakeDir extends MakeFile
+    execute: (target...) ->
+        if target?
+            @setTarget Operation.resolve(target...)
 
-    execute: (target) ->
-        super(target)
-        @target = @resolve(@target)
-
-        if @exists(@target)
+        if Operation.exists(@target)
             throw new Error("Path already exists: #{@target}")
 
         Fs.mkdirSync(@target)
@@ -186,7 +245,10 @@ class Delete extends Operation
         throw new Error('No entries on which to perform') unless @sources?
 
         unless @realDelete
-            Trash @sources
+            # console.log
+            # @sources = _.map @sources, (s) -> s.replace(/(\(|\))/g, '\\$1')
+            Trash @sources, (err) ->
+                console.error err if err?
         else
             for path in @sources
                 FsEx.deleteSync path
