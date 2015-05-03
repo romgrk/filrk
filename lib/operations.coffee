@@ -99,6 +99,9 @@ class Operation
     files:    true
     dirs:     true
 
+    sourcesExist: true
+    targetExists: false
+
     sources:  []
     target: null
 
@@ -106,6 +109,7 @@ class Operation
     #
     # * `source` array of files/dirs on which the operation will apply
     constructor: (sources...) ->
+        _.extend @, Operation
         if sources? and sources.length isnt 0
             if _.isArray(sources[0])
                 @setSource sources[0]
@@ -128,7 +132,7 @@ class Operation
         unless @multiple
             throw new Error("Multiple entries not allowed") if sources.length isnt 1
         for s in sources
-            unless Operation.exists(s)
+            if (not Operation.exists(s)) and @sourcesExist
                 throw new Error("Following path does not exist: #{s}")
             if (not @files) and Operation.isFile(s)
                 throw new Error("Files not allowed as source")
@@ -208,29 +212,23 @@ class Rename extends Operation
         Fs.renameSync(@sources[0], @target)
 
 class MakeFile extends Operation
-    constructor: (target...) ->
-        if target? and target.length isnt 0
-            @setTarget Operation.resolve(target...)
+    sourcesExist: false
 
+    execute: (files=[]) ->
+        @sources = files if files.length isnt 0
+        @make file for file in @sources
 
-    execute: (target...) ->
-        if target? and target.length isnt 0
-            @setTarget Operation.resolve(target...)
+    make: (file) ->
+        if Operation.exists(file)
+            throw new Error("Path already exists: #{file}")
+        Fs.closeSync Fs.openSync(file, 'wx')
 
-        if Operation.exists(@target)
-            throw new Error("Path already exists: #{@target}")
-
-        Fs.closeSync Fs.openSync(@target, 'wx')
 
 class MakeDir extends MakeFile
-    execute: (target...) ->
-        if target?
-            @setTarget Operation.resolve(target...)
-
-        if Operation.exists(@target)
-            throw new Error("Path already exists: #{@target}")
-
-        Fs.mkdirSync(@target)
+    make: (dir) ->
+        if Operation.exists(dir)
+            throw new Error("Path already exists: #{dir}")
+        Fs.mkdirSync(dir)
 
 class Delete extends Operation
     realDelete: false
