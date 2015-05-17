@@ -176,8 +176,23 @@ class System
 
         list = {}
         _.each @list(path, options), (file) =>
-            details = @details(file)
-            list[details.basename] = details
+            stats = @stats(file)
+            list[stats.basename] = stats
+
+        return list
+
+    statsList: (path) ->
+        options = {}
+        options.files   = true
+        options.dirs    = true
+        options.visible = true
+        options.hidden  = true
+        options.base    = false
+
+        list = []
+        _.each @list(path, options), (file) =>
+            stats = @stats(file)
+            list.push stats
 
         return list
 
@@ -235,7 +250,7 @@ class System
 
 
     # Public: information
-    details: (path) ->
+    stats: (path) ->
         _.extend Path.parse(path),
             path:   path
             exists: Fs.exists(path)
@@ -249,7 +264,7 @@ class System
         unless @isAbs(path)
             path = @resolve path
 
-        details       = @details path
+        stats       = @stats path
         base          = @base path
         numberedRegex = /(.*)\((\d+)\)(\.[\w\d]+)?$/
 
@@ -259,9 +274,9 @@ class System
             newName = match[1] + "(#{num})"
             newName += match[3] if match[3]?
         else
-            newName = details.name + "(1)" + details.ext
+            newName = stats.name + "(1)" + stats.ext
 
-        newPath = @resolve(details.dir, newName)
+        newPath = @resolve(stats.dir, newName)
         return @unique newPath
 
 

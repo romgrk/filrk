@@ -22,6 +22,8 @@ module.exports = Filrk =
         @subscriptions.add atom.commands.add 'atom-workspace',
             'filrk:toggle': => @toggle()
 
+        window.filrk = @
+
     createPanel: (element) ->
         atom.workspace.addModalPanel(item: element, visible: false)
 

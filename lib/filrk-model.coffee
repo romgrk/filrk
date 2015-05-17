@@ -14,29 +14,36 @@ unwatch = WatchJS.unwatch
 {CompositeDisposable} = require 'atom'
 {$, $$, View} = require 'space-pen'
 
-FileOp = require './operations'
-Op     = FileOp.Operation
+FileOp   = require './operations'
+Op       = FileOp.Operation
+{System} = new require './system'
 
 module.exports = class FilrkModel
 
     # Public: {String} path of the cwd
-    currentDirectory: null
+    cwd: null
 
     # Public: {Array} of files listed in file-panel
-    list: null
+    list: []
 
     # Public: {Array} of selected paths
-    selection: null
+    selection: []
 
-    constructor: (@currentDirectory=Op.resolve('~')) ->
-        @list      = []
-        @selection = []
+    # Public: {System}
+    sys: null
 
-        @link =>
-            @list = Op.list(@currentDirectory, {base:true})
-            console.log @list
-        , 'currentDirectory'
+    constructor: (@cwd) ->
 
-    link: (callback, property) ->
-        watch @, property, =>
-            callback @[property]
+        @cwd ?= System.resolve('.') || System.resolve('~')
+        @sys = new System(@cwd)
+
+    setCWD: (path) ->
+        path = @sys.resolve(@cwd, path)
+        stats = @sys.f(path)
+        if stats.exists and stats.isDir
+            @cwd     = stats.path
+            @sys.cwd = stats.path
+
+            @list = @sys.statsList(@cwd)
+        else
+            console.warn "Path doesn't exist ", path

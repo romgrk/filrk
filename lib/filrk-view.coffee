@@ -28,28 +28,32 @@ class FilrkView extends View
     @content: ->
         @div class: 'filrk', =>
             @div class: 'left-panel', =>
-                @div class: 'path-bar', outlet: 'pathBar'
                 @div class: 'file-panel select-list', =>
                     @ol class: 'list-group', outlet: 'fileList', =>
                         @li class: '', '~/file.txt'
                         @li class: '', '~/git/otherfile.txt'
                 @div class: 'command-bar', =>
-                    @tag 'atom-text-editor', mini:true, outlet: 'input'
+                    @div class: 'path-container', =>
+                        @span class: 'path-label', outlet: 'pathLabel'
+                        @input type: 'text', class: 'path-input', outlet: 'pathInput'
             @div class: 'right-panel', =>
                 @ul class: 'list-group', =>
                     @li class: 'list-item', '~/file.txt'
                     @li class: 'list-item', '~/git/otherfile.txt'
 
     # Public: creates a file element (li)
-    @file: (path) ->
+    @entry: (stats, icon) ->
         $$ ->
-            @li class: 'list-item', path
+            @li class: 'list-item', =>
+                @span stats.name, class: "icon icon-#{icon ? 'plus'}",
+                    'data-name': stats.base, 'data-path': stats.path
 
     ###
     Section: instance
     ###
 
     model: null
+    
     subscriptions: null
 
     ###
@@ -62,40 +66,70 @@ class FilrkView extends View
         @model = new Model()
         @subscriptions = new CompositeDisposable
 
-        @editor = @input[0].getModel()
-
         @registerInputCommands
-            'core:cancel': => @input.blur()
-            'core:confirm': =>
-                @model.currentDirectory = @editor.getText()
+            'core:cancel':  => @pathInput.blur()
+            'core:confirm': => @inputConfirmed()
 
-        @model.link @pathBar.html.bind(@pathBar), 'currentDirectory'
-        @model.link @setFileList, 'list'
+        @pathInput.on('input', @inputChanged.bind(@))
 
-        @input.onDidChange(@textChanged.bind(@))
+        Object.observe(@model, @modelChanged.bind(@))
+
+        @updatePath()
+        @updateFileList()
 
     registerInputCommands: (commands) ->
-        atom.commands.add '.command-bar > atom-text-editor.mini', commands
+        atom.commands.add '.command-bar .path-input', commands
 
-    setFileList: (list) =>
+    ###
+    Section: model observation
+    ###
+
+    modelChanged: (changes) ->
+        for change in changes
+            console.log change
+            name = change.name
+            switch name
+                when 'cwd' then @updatePath()
+                when 'list' then @updateFileList()
+
+    updatePath: ->
+        @pathLabel.text(@model.cwd)
+
+    updateFileList: ->
         @fileList.empty()
-        for path in list
-            @fileList.append FilrkView.file(path)
+        for file in @model.list
+            icon = if file.isDir then 'file-directory' else 'file-text'
+            @fileList.append FilrkView.entry(file, icon)
 
     ###
-    Section: Input handling
+    Section: pathInput handling
     ###
 
-    textChanged: ->
+    inputConfirmed: ->
+        text = @pathInput.val()
+        @clearInput()
 
+        @model.setCWD text
 
+    inputChanged: ->
+        text = @pathInput.val()
+
+        if text.match /\.\./
+            @model.setCWD('..')
+            @clearInput()
+        else if text.match /~/
+            @model.setCWD('~')
+            @clearInput()
+
+    clearInput: ->
+        @pathInput.val ''
 
     ###
     Section: display functions
     ###
 
     focus: ->
-        @input.focus()
+        @pathInput.focus()
 
     getModel: ->
         @model
