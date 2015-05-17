@@ -139,7 +139,6 @@ class System
         base    = options.base ? false
 
         paths = Fs.listSync(@abs path)
-        console.log paths
 
         unless files
             paths = _.filter(paths, (p) => not @isFile p)

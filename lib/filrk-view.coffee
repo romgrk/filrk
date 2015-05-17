@@ -14,8 +14,9 @@ unwatch = WatchJS.unwatch
 {CompositeDisposable} = require 'atom'
 {$, $$, View} = require 'space-pen'
 
-FileOp = require './operations'
-Model  = require './filrk-model'
+FileOp           = require './operations'
+Model            = require './filrk-model'
+AutocompletePath = require './autocomplete-path'
 
 
 module.exports =
@@ -45,16 +46,17 @@ class FilrkView extends View
     @entry: (stats, icon) ->
         $$ ->
             @li class: 'list-item', =>
-                @span stats.name, class: "icon icon-#{icon ? 'plus'}",
-                    'data-name': stats.base, 'data-path': stats.path
+                @span class: "icon icon-#{icon ? 'plus'}", 'data-name': stats.base, 'data-path': stats.path, stats.name
 
     ###
     Section: instance
     ###
 
     model: null
-    
+
     subscriptions: null
+
+    autocomplete: null
 
     ###
     Section: init/setup
@@ -63,8 +65,9 @@ class FilrkView extends View
     constructor: () ->
         super()
 
-        @model = new Model()
+        @model         = new Model()
         @subscriptions = new CompositeDisposable
+        @autocomplete  = new AutocompletePath(@pathInput)
 
         @registerInputCommands
             'core:cancel':  => @pathInput.blur()
@@ -86,14 +89,15 @@ class FilrkView extends View
 
     modelChanged: (changes) ->
         for change in changes
-            console.log change
+            # console.log change
             name = change.name
             switch name
                 when 'cwd' then @updatePath()
                 when 'list' then @updateFileList()
 
     updatePath: ->
-        @pathLabel.text(@model.cwd)
+        @pathLabel.text         @model.cwd
+        @autocomplete.setPath   @model.cwd
 
     updateFileList: ->
         @fileList.empty()

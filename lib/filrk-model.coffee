@@ -32,13 +32,12 @@ module.exports = class FilrkModel
     # Public: {System}
     sys: null
 
-    constructor: (@cwd) ->
-
-        @cwd ?= System.resolve('.') || System.resolve('~')
-        @sys = new System(@cwd)
+    constructor: (cwd) ->
+        @sys = new System('/')
+        @setCWD(cwd || atom.project.getPaths()[0] || process.cwd())
 
     setCWD: (path) ->
-        path = @sys.resolve(@cwd, path)
+        path = @sys.resolve(@cwd || '/', path)
         stats = @sys.f(path)
         if stats.exists and stats.isDir
             @cwd     = stats.path

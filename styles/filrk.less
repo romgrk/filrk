@@ -10,14 +10,15 @@
 @panel-bg:           rgba(255, 255, 255, 0.1);
 @panel-border:       black;
 
-@path-container-bg: rgba(255, 255, 255, 0.5);
 @file-panel-bg:     rgba(255, 255, 255, 0.7);
 @command-bar-bg:    rgba(255, 255, 255, 0.3);
 
+@selection-panel-bg: rgba(0, 0, 0, 0.5);
+
+@path-background-color: lighten(black, 10%);
 
 @path-label-width: 100px;
 
-@selection-panel-bg: rgba(0, 0, 0, 0.5);
 
 .font() {
     font-size: 14px;
@@ -66,9 +67,19 @@ atom-panel.filrk-panel {
         .command-bar {
             display: block;
             flex-basis: @component-line-height;
-            background-color: @input-background-color;
-
+            background-color: @path-background-color;
             .font();
+
+            &:before {
+                position: absolute;
+                z-index:5000;
+                top: 0;
+                left: 0;
+                display: inline-block;
+                width: @component-line-height;
+                height: @component-line-height;
+                background: linear-gradient(to right, black, fade(black, 0%));
+            }
 
             .path-container {
                 position: relative;
@@ -79,16 +90,6 @@ atom-panel.filrk-panel {
 
                 transition: width .5s ease;
 
-                &::before {
-                    position: absolute;
-                    z-index:5000;
-                    top: 0;
-                    left: 0;
-                    display: inline-block;
-                    width: @component-line-height;
-                    height: @component-line-height;
-                    background: linear-gradient(to right, black, fade(black, 0%));
-                }
 
                 .path-label {
                     position: relative;
