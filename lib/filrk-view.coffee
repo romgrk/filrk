@@ -18,18 +18,21 @@ FileOp = require './operations'
 Model  = require './filrk-model'
 
 
-module.exports = class FilrkView extends View
-    ############################################################################
-    # Section: html content of the view's element
-    ############################################################################
+module.exports =
+class FilrkView extends View
+
+    ###
+    Section: html content of the view's element
+    ###
+
     @content: ->
         @div class: 'filrk', =>
             @div class: 'left-panel', =>
                 @div class: 'path-bar', outlet: 'pathBar'
-                @div class: 'file-panel', =>
-                    @ul class: 'list-group', outlet: 'fileList', =>
-                        @li class: 'list-item', '~/file.txt'
-                        @li class: 'list-item', '~/git/otherfile.txt'
+                @div class: 'file-panel select-list', =>
+                    @ol class: 'list-group', outlet: 'fileList', =>
+                        @li class: '', '~/file.txt'
+                        @li class: '', '~/git/otherfile.txt'
                 @div class: 'command-bar', =>
                     @tag 'atom-text-editor', mini:true, outlet: 'input'
             @div class: 'right-panel', =>
@@ -37,22 +40,59 @@ module.exports = class FilrkView extends View
                     @li class: 'list-item', '~/file.txt'
                     @li class: 'list-item', '~/git/otherfile.txt'
 
-    ############################################################################
-    # Section: instance
-    ############################################################################
-    model: null
+    # Public: creates a file element (li)
+    @file: (path) ->
+        $$ ->
+            @li class: 'list-item', path
 
-    initialize: () ->
-        @editor = @input[0].getModel()
+    ###
+    Section: instance
+    ###
+
+    model: null
+    subscriptions: null
+
+    ###
+    Section: init/setup
+    ###
+
+    constructor: () ->
+        super()
 
         @model = new Model()
-        @model.bind @pathBar.html, 'currentDirectory'
+        @subscriptions = new CompositeDisposable
 
-        atom.commands.add '.command-bar > atom-text-editor.mini',
+        @editor = @input[0].getModel()
+
+        @registerInputCommands
             'core:cancel': => @input.blur()
             'core:confirm': =>
                 @model.currentDirectory = @editor.getText()
-                @editor.setText ''
+
+        @model.link @pathBar.html.bind(@pathBar), 'currentDirectory'
+        @model.link @setFileList, 'list'
+
+        @input.onDidChange(@textChanged.bind(@))
+
+    registerInputCommands: (commands) ->
+        atom.commands.add '.command-bar > atom-text-editor.mini', commands
+
+    setFileList: (list) =>
+        @fileList.empty()
+        for path in list
+            @fileList.append FilrkView.file(path)
+
+    ###
+    Section: Input handling
+    ###
+
+    textChanged: ->
+
+
+
+    ###
+    Section: display functions
+    ###
 
     focus: ->
         @input.focus()

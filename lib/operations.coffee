@@ -10,16 +10,16 @@ HIDDEN_FILE = /\/\.[^\/]+$/
 
 class Operation
 
-    ############################################################################
-    # Section: Path/FileSystem utilities (static)
-    ############################################################################
+    ###
+    Section: Path/FileSystem utilities (static)
+    ###
 
     @absolute: (path) -> Fs.absolute path
     @relative: (from, to) -> Path.relative(from, to)
     @dirname:  (path) -> Path.dirname path
     @basename: (path) -> Path.basename path
 
-    @exists:   (path) -> Fs.existsSync path
+    @exists:   (path) -> Fs.absolute(path) and Fs.existsSync(path)
     @isDir:    (path) -> Fs.isDirectorySync path
     @isFile:   (path) -> Fs.isFileSync path
     @isLink:   (path) -> Fs.isSymbolicLinkSync path
@@ -60,7 +60,7 @@ class Operation
             Fs.normalize p
         resolved = Path.resolve path...
         if Fs.exists(resolved)
-            Fs.realpathSync Fs.absolute resolved
+            Fs.realpathSync resolved
         else
             resolved
 
@@ -91,9 +91,9 @@ class Operation
         return Operation.unique newPath
 
 
-    ############################################################################
-    # Section: Operators
-    ############################################################################
+    ###
+    Section: Operators
+    ###
 
     multiple: true
     files:    true

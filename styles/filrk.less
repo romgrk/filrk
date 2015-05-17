@@ -5,7 +5,7 @@
 @import "ui-variables";
 
 @panel-bg:           rgba(255, 255, 255, 0.1);
-@panel-border:       red;
+@panel-border:       black;
 
 @path-bar-bg:    rgba(255, 255, 255, 0.5);
 @file-panel-bg:  rgba(255, 255, 255, 0.7);
@@ -47,11 +47,18 @@ atom-panel.filrk-panel {
         }
         .file-panel {
             flex-grow: 1;
-            background-color: @file-panel-bg;
+            background-color: @inset-panel-background-color;
+            border: 1px solid @inset-panel-border-color;
         }
         .command-bar {
             flex-basis: @component-line-height;
-            background-color: @command-bar-bg;
+            background-color: @input-background-color;
+
+            atom-text-editor[mini] {
+                &.is-focused {
+                    // box-shadow: 0 0 20px 1px fade(@base-accent-color, 70%);
+                }
+            }
         }
     }
 
