@@ -19,8 +19,9 @@ class AutocompletePath extends View
     useValueAsPath: false
 
     @content: ->
-        @div class: 'autocomplete-path-panel', =>
-            @ol class: 'completion-list', outlet: 'listElement'
+        @div class: 'autocomplete-path-container', =>
+            @div class: 'autocomplete-path-panel', outler: 'panel', =>
+                @ol class: 'completion-list', outlet: 'listElement'
 
     @createItem: (text) ->
         $$ ->
@@ -33,13 +34,13 @@ class AutocompletePath extends View
     constructor: (input) ->
         @input = if input[0]? then input else $(input)
         super()
+        @attach()
 
         @input.css('position': 'relative')
 
         @input.on 'input', @inputChanged.bind(@)
         @input.on 'blur', => @hide()
 
-        @attach()
         console.log window.autocomp = @
 
     # Public: input change handler
@@ -88,4 +89,5 @@ class AutocompletePath extends View
         Fs.readdir(@path, @updateList.bind(@))
 
     attach: ->
-        @input.get()[0].appendChild @.get()[0]
+        parent = @input.parent()[0]
+        parent.appendChild @.get()[0]

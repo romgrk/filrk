@@ -36,6 +36,7 @@ class FilrkView extends View
                 @div class: 'command-bar', =>
                     @div class: 'path-container', =>
                         @span class: 'path-label', outlet: 'pathLabel'
+                    @div class: 'input-container', outlet: 'inputContainer', =>
                         @input type: 'text', class: 'path-input', outlet: 'pathInput'
             @div class: 'right-panel', =>
                 @ul class: 'list-group', =>
