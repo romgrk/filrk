@@ -21,7 +21,7 @@ class AutocompletePath extends View
     @content: ->
         @div class: 'autocomplete-path-container', =>
             @div class: 'autocomplete-path-panel', outler: 'panel', =>
-                @ol class: 'completion-list', outlet: 'listElement'
+                @ul class: 'completion-list', outlet: 'listElement'
 
     @createItem: (text) ->
         $$ ->

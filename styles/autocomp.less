@@ -1,4 +1,9 @@
 
+@popup-color: #bababa;
+@popup-bg: #212121;
+
+@select-bg: #0d75ee;
+
 .autocomplete-path-panel {
     position: absolute;
     z-index: 9000;
@@ -7,9 +12,16 @@
     max-height: 250px;
 
 
-    ol.completion-list {
+    .completion-list {
+        color:            @popup-color;
+        background-color: @popup-bg;
+
+        list-style-type: none;
         li {
-            font: 14px "Monospace"
+            font: 14px "Monospace";
+            &.selected {
+                background-color: @select-bg;
+            }
         }
 
     }

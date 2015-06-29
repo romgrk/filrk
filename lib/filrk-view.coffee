@@ -30,7 +30,7 @@ class FilrkView extends View
         @div class: 'filrk', =>
             @div class: 'left-panel', =>
                 @div class: 'file-panel select-list', =>
-                    @ol class: 'list-group', outlet: 'fileList', =>
+                    @ul class: 'list-group', outlet: 'fileList', =>
                         @li class: '', '~/file.txt'
                         @li class: '', '~/git/otherfile.txt'
                 @div class: 'command-bar', =>
@@ -47,7 +47,7 @@ class FilrkView extends View
     @entry: (stats, icon) ->
         $$ ->
             @li class: 'list-item', =>
-                @span class: "icon icon-#{icon ? 'plus'}", 'data-name': stats.base, 'data-path': stats.path, stats.name
+                @span class: "icon icon-#{icon ? 'plus'}", 'data-name': stats.base, 'data-path': stats.path, stats.base
 
     ###
     Section: instance

@@ -13,5 +13,7 @@
 
 '.filrk .path-input':
     'enter':     'core:confirm'
-    'space':     'filrk:autocomplete'
+    'tab':       'filrk:autocomplete-next'
+    'shift-tab': 'filrk:autocomplete-previous'
+    'space':     'filrk:autocomplete-confirm'
     'backspace': 'native!'
