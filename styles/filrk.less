@@ -7,10 +7,13 @@
 
 @text-color: #e0e0e0;
 
+@panel-background: @tool-panel-background-color;
+
 @panel-bg:     rgba(255, 255, 255, 0.1);
 @panel-border: black;
 
-@file-panel-bg:  rgba(255, 255, 255, 0.7);
+// @file-panel-bg:  rgba(255, 255, 255, 0.7);
+@file-panel-bg:  @overlay-background-color;
 @command-bar-bg: rgba(255, 255, 255, 0.3);
 
 @selection-panel-bg: rgba(0, 0, 0, 1);
@@ -24,18 +27,18 @@
 }
 
 .transparentInput() {
+    border:           none;
+    outline:          none;
     background-color: transparent;
-    outline: none;
-    border: none;
 }
 
 atom-panel.filrk-panel {
-    display: inline-block;
+    display:  inline-block;
     position: absolute;
 
-    top: 0;
-    right: 0;
-    z-index: 9999;
+    top:     50px;
+    right:   20px;
+    z-index: 5000;
 
     width: 600px;
     height: 350px;
@@ -51,6 +54,8 @@ atom-panel.filrk-panel {
     display:    flex;
     height: 100%;
 
+    background-color: @tool-panel-background-color;
+
     .font();
 
     .left-panel {
@@ -60,44 +65,57 @@ atom-panel.filrk-panel {
 
         .file-panel {
             flex-grow: 1;
-            background-color: @inset-panel-background-color;
-            border: 1px solid @inset-panel-border-color;
 
             overflow: auto;
 
-            .file-panel-list {
+            background-color: @overlay-background-color;
+            border: 1px solid @overlay-border-color;
 
+            .file-panel-list {
+                padding-left: 10px;
             }
         }
         .command-bar {
-            display: flex;
-            flex-direction: row;
-
+            position: relative;
             flex-basis: @component-line-height;
             min-height: @component-line-height;
 
-            background-color: @path-background-color;
+            display:        flex;
+            flex-direction: row;
+
+            // background-color: @path-background-color;
+            border: 1px solid @input-border-color;
+            // background-color: @input-background-color;
 
             .font();
 
-            &:before {
+            // TODO make this cool shadow appear
+            &::before {
                 position: absolute;
-                z-index:5000;
-                top: 0;
+                display:  inline-block;
+                z-index:  6000;
+                top:  0;
                 left: 0;
-                display: inline-block;
-                width: @component-line-height;
+
+                width:  10px;
                 height: @component-line-height;
-                background: linear-gradient(to right, black, fade(black, 0%));
+
+                content: " ";
+
+                background: linear-gradient(
+                    to right,
+                    fade(@panel-background, 100%),
+                    fade(@panel-background, 0%));
             }
 
             .path-container {
                 position: relative;
                 display: inline-block;
 
-                max-width: 200px;
-                height: @component-line-height;
-                overflow: hidden;
+                height:      @component-line-height;
+                line-height: @component-line-height;
+                max-width:   200px;
+                overflow:    hidden;
 
                 color: darken(@text-color, 25%);
 
@@ -105,51 +123,37 @@ atom-panel.filrk-panel {
 
                 .path-label {
                     position: relative;
-                    display: inline-block;
-                    height: @component-line-height;
-                    // left: -15px;
+                    display:  inline-block;
+                    padding-left: 10px;
+
+                    height:      @component-line-height;
+                    line-height: @component-line-height;
 
                     transition: width .5s ease;
-
-                    &::after {
-                        content: '/ ';
-                        height: @component-line-height;
-                        .font();
-                    }
                 }
-
             }
 
             .input-container {
-                position: relative;
-                display: inline-block;
-
                 flex-grow: 1;
 
-                height: @component-line-height;
-                margin: 0;
+                position: relative;
+                display:  inline-block;
+                margin:  0;
                 padding: 0;
 
-                background-color: rgba(200, 20, 20, 0.3);
-            }
+                height:  @component-line-height;
+                line-height: @component-line-height;
 
-            input.path-input {
-                display: inline-block;
-                // display: none;
+                & > input {
+                    .transparentInput();
+                    display: inline-block;
+                    width:   100%;
+                    margin:  0;
+                    padding: 0;
 
-                height: @component-line-height;
-                width: 100%;
-                // min-width: 150px;
-
-                color: @text-color;
-                .font();
-                .transparentInput();
-                &::shadow .inner-editor {
-                    height: @component-line-height;
+                    .font();
+                    color: @text-color;
                 }
-
-                background-color: rgba(200, 200, 20, 0.3);
-
             }
         }
     }
@@ -157,7 +161,10 @@ atom-panel.filrk-panel {
     .right-panel {
         flex-grow: 0;
         flex-basis: 200px;
-        background-color: @selection-panel-bg;
+
+        padding-left: 10px;
+
         color: white;
+        background-color: @selection-panel-bg;
     }
 }

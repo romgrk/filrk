@@ -39,7 +39,7 @@ class FilrkView extends View
                         @span class: 'path-label', outlet: 'pathLabel'
                     @div class: 'input-container', outlet: 'inputContainer', =>
                         @input type: 'text', class: 'path-input', outlet: 'pathInput'
-            @div class: 'right-panel', =>
+            @div class: 'right-panel inset-panel', =>
                 @ul class: 'list-group', =>
                     @li class: 'list-item', '~/file.txt'
                     @li class: 'list-item', '~/git/otherfile.txt'
