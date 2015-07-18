@@ -7,18 +7,16 @@
 
 @text-color: #e0e0e0;
 
-@panel-bg:           rgba(255, 255, 255, 0.1);
-@panel-border:       black;
+@panel-bg:     rgba(255, 255, 255, 0.1);
+@panel-border: black;
 
-@file-panel-bg:     rgba(255, 255, 255, 0.7);
-@command-bar-bg:    rgba(255, 255, 255, 0.3);
+@file-panel-bg:  rgba(255, 255, 255, 0.7);
+@command-bar-bg: rgba(255, 255, 255, 0.3);
 
-@selection-panel-bg: rgba(0, 0, 0, 0.5);
+@selection-panel-bg: rgba(0, 0, 0, 1);
 
+@path-label-width:      100px;
 @path-background-color: lighten(black, 10%);
-
-@path-label-width: 100px;
-
 
 .font() {
     font-size: 14px;
@@ -51,9 +49,7 @@ atom-panel.filrk-panel {
 
 .filrk {
     display:    flex;
-    width:      700px;
-    min-height: 250px;
-    max-height: 100%;
+    height: 100%;
 
     .font();
 
@@ -68,11 +64,20 @@ atom-panel.filrk-panel {
             border: 1px solid @inset-panel-border-color;
 
             overflow: auto;
+
+            .file-panel-list {
+
+            }
         }
         .command-bar {
-            display: block;
+            display: flex;
+            flex-direction: row;
+
             flex-basis: @component-line-height;
+            min-height: @component-line-height;
+
             background-color: @path-background-color;
+
             .font();
 
             &:before {
@@ -89,9 +94,11 @@ atom-panel.filrk-panel {
             .path-container {
                 position: relative;
                 display: inline-block;
-                width: 200px;
+
+                max-width: 200px;
                 height: @component-line-height;
                 overflow: hidden;
+
                 color: darken(@text-color, 25%);
 
                 transition: width .5s ease;
@@ -114,11 +121,14 @@ atom-panel.filrk-panel {
             }
 
             .input-container {
+                position: relative;
                 display: inline-block;
+
+                flex-grow: 1;
+
                 height: @component-line-height;
                 margin: 0;
                 padding: 0;
-
 
                 background-color: rgba(200, 20, 20, 0.3);
             }
@@ -127,9 +137,8 @@ atom-panel.filrk-panel {
                 display: inline-block;
                 // display: none;
 
-
                 height: @component-line-height;
-
+                width: 100%;
                 // min-width: 150px;
 
                 color: @text-color;

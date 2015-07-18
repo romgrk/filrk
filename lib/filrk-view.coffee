@@ -30,9 +30,10 @@ class FilrkView extends View
         @div class: 'filrk', =>
             @div class: 'left-panel', =>
                 @div class: 'file-panel select-list', =>
-                    @ul class: 'list-group', outlet: 'fileList', =>
-                        @li class: '', '~/file.txt'
-                        @li class: '', '~/git/otherfile.txt'
+                    @div class: 'file-panel-list', =>
+                        @ul class: 'list-group', outlet: 'fileList', =>
+                            @li class: '', '~/file.txt'
+                            @li class: '', '~/git/otherfile.txt'
                 @div class: 'command-bar', =>
                     @div class: 'path-container', =>
                         @span class: 'path-label', outlet: 'pathLabel'
