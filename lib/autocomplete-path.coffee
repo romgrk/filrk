@@ -1,7 +1,7 @@
 
-_  = require 'underscore-plus'
-Fs = require 'fs-plus'
-
+_       = require 'underscore-plus'
+Fs      = require 'fs-plus'
+Emitter = require('event-kit').Emitter
 
 {CompositeDisposable} = require 'atom'
 {$, $$, View}         = require 'space-pen'
@@ -11,9 +11,12 @@ Fs = require 'fs-plus'
 module.exports =
 class AutocompletePath extends View
 
+    # {EventEmitter}
+    emitter: null
+
     # {JQuery} input to which autocomp is attached
     input: null
-
+    # {JQuery}
     selectedElement: null
 
     # Dir where to look for files
@@ -47,10 +50,12 @@ class AutocompletePath extends View
     constructor: (input) ->
         @input = if input[0]? then input else $(input)
         super()
+
+        @emitter = new Emitter()
+
         @attach()
 
         @input.css('position': 'relative')
-
         # @input.on 'input', @completeLead.bind(@)
         @input.on 'blur', => @hide()
 
@@ -66,6 +71,13 @@ class AutocompletePath extends View
     # Public: cancels the popup
     cancel: =>
         @hide()
+
+    # Public: emit event
+    emit: (eventName, value) ->
+        @emitter.emit eventName, value
+
+    on:  (args...) -> @emitter.on args...
+    off: (args...) -> @emitter.off args...
 
     ###
     Section: completion functions
@@ -101,6 +113,10 @@ class AutocompletePath extends View
     # Public: cycle through the completion candidates
     cycle: (moveAmount) =>
         return unless @completions? and @completions.length > 0
+
+        if @completions.length == 2
+            console.log @completions
+            @emit 'single-match-left'
 
         @completionIndex += moveAmount
 

@@ -83,6 +83,8 @@ class FilrkView extends View
         @pathInput.on('focus', @updatePath.bind(@))
         @pathInput.on('input', @inputChanged.bind(@))
 
+        @autocomplete.on 'single-match-left', => @inputConfirmed()
+
         Object.observe(@model, @modelChanged.bind(@))
 
         @updatePath()
@@ -103,6 +105,7 @@ class FilrkView extends View
                 when 'cwd'  then @updatePath()
                 when 'list' then @updateFileList()
 
+    # Public: retrieve path from model and render it
     updatePath: ->
         path = @model.cwd
         pathInfo = Path.parse path
