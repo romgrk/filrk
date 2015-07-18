@@ -75,10 +75,12 @@ class FilrkView extends View
             'core:cancel':  => @pathInput.blur()
             'core:confirm': => @inputConfirmed()
 
-            'filrk:autocomplete-next':      => @inputConfirmed()
-            'filrk:autocomplete-previous':  => @inputConfirmed()
-            'filrk:autocomplete-confirm':   => @inputConfirmed()
+            'filrk:autocomplete-next': => @autocomplete.cycle(1)
+            'filrk:autocomplete-previous': => @autocomplete.cycle(-1)
+            # 'filrk:autocomplete-previous':  => @inputConfirmed()
+            # 'filrk:autocomplete-confirm':   => @inputConfirmed()
 
+        @pathInput.on('focus', @updatePath.bind(@))
         @pathInput.on('input', @inputChanged.bind(@))
 
         Object.observe(@model, @modelChanged.bind(@))
@@ -109,7 +111,7 @@ class FilrkView extends View
         unless pathInfo.root is pathInfo.dir
             displayPath += Path.sep
 
-        @autocomplete.setPath path
+        @autocomplete.setDir path
         @pathLabel.text displayPath
 
         labelWidth = parseInt(@pathLabel.trueWidth())
@@ -146,8 +148,9 @@ class FilrkView extends View
 
         @model.setCWD text
 
-    inputChanged: ->
+    inputChanged: (event) ->
         text = @pathInput.val()
+        console.log text, event
 
         if text.match /\.\./
             @model.setCWD('..')
@@ -155,13 +158,23 @@ class FilrkView extends View
         else if text.match /~/
             @model.setCWD('~')
             @clearInput()
+        else
+            @autocomplete.completeLead(text)
 
-    clearInput: ->
-        @pathInput.val ''
+    # completeNext: ->
+
 
     ###
     Section: display functions
     ###
+
+    clearInput: ->
+        @autocomplete.cancel()
+        @pathInput.val ''
+
+    show: ->
+        super.show()
+        @updatePath()
 
     focus: ->
         @pathInput.focus()

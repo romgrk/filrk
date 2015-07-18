@@ -11,7 +11,10 @@ Fs = require 'fs-plus'
 module.exports =
 class AutocompletePath extends View
 
+    # {JQuery} input to which autocomp is attached
     input: null
+
+    selectedElement: null
 
     # Dir where to look for files
     path: null
@@ -48,35 +51,35 @@ class AutocompletePath extends View
 
         @input.css('position': 'relative')
 
-        @input.on 'input', @inputChanged.bind(@)
+        # @input.on 'input', @completeLead.bind(@)
         @input.on 'blur', => @hide()
 
-        console.log window.autocomp = @
+        window.autocomp = @
 
     # Public: set the path in which files are being autocompleted
     #
     # Returns nothing.
-    setPath: (p) ->
-        @path = p
-        Fs.readdir(@path, @readdirCallback.bind(@))
+    setDir: (p) ->
+        @dir = p
+        Fs.readdir(@dir, @readdirCallback.bind(@))
 
-    # Public: cancels the autocompletion
+    # Public: cancels the popup
     cancel: =>
         @hide()
 
     ###
-    Section: event handling
+    Section: completion functions
     ###
 
-    # Private: input change handler
+    # Private: completes the lead passed as argument
     #
     # Returns nothing.
-    inputChanged: =>
+    completeLead: (lead) =>
         unless @list? and @list.length > 0
             @cancel()
             return
 
-        lead = @input.val()
+        # lead = @input.val()
         lists = []
         lists[0] = _.filter @list, (file) ->
             idx = file.indexOf lead
@@ -88,30 +91,62 @@ class AutocompletePath extends View
             return false
 
         completions = _.union(lists...)
-        completions.unshift lead        # lead is always candidate 0
 
-        @populateList(completions)
-
+        completions.unshift lead # lead is kept as candidate 0
         @completionIndex = 0
         @completions     = completions
 
-    autocompleteNext: ->
+        @populateList(completions)
 
-    autocompletePrevious: ->
+    # Public: cycle through the completion candidates
+    cycle: (moveAmount) =>
+        return unless @completions? and @completions.length > 0
+
+        @completionIndex += moveAmount
+
+        if @completionIndex == @completions.length
+            @completionIndex = 0
+        if @completionIndex < 0
+            @completionIndex = @completions.length
+
+        @input.val @completions[@completionIndex]
+        @selectItem @completionIndex
+
+    ###
+    Section: rendering
+    ###
+
+    # Public: highlight *index* children
+    selectItem: (index) ->
+        if @selectedElement?
+            @selectedElement.removeClass 'selected'
+        @selectedElement = $ @listElement.children()[index]
+        @selectedElement.addClass 'selected'
 
     # Private: reset and re-position the element, when the popup shows up
     #
     # Returns nothing.
     populateList: (items) =>
+        if items.length is 1
+            @hide()
+            return
+
         @listElement.empty()
-        for item in items
-            @listElement.append(AutocompletePath.createItem(item))
+        for item, index in items
+            element = AutocompletePath.createItem(item)
+            if index is 0
+                element.css 'display': 'none'
+            @listElement.append(element)
 
         unless @isVisible()
             @show()
 
         @css('top': 0)
         @css('left': 0)
+
+    attach: ->
+        parent = @input.parent()[0]
+        parent.appendChild @.get()[0]
 
     # Private: callback for Fs.readdir
     #
@@ -122,7 +157,3 @@ class AutocompletePath extends View
             @list = null
         else
             @list = files
-
-    attach: ->
-        parent = @input.parent()[0]
-        parent.appendChild @.get()[0]
