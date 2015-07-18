@@ -34,12 +34,13 @@
 atom-panel.filrk-panel {
     display: inline-block;
     position: absolute;
+
     top: 0;
     right: 0;
     z-index: 9999;
 
-    // width: 500px;
-    // height: 100px;
+    width: 600px;
+    height: 350px;
     margin: 0;
     // padding: 10px;
 
@@ -52,6 +53,7 @@ atom-panel.filrk-panel {
     display:    flex;
     width:      700px;
     min-height: 250px;
+    max-height: 100%;
 
     .font();
 
@@ -64,6 +66,8 @@ atom-panel.filrk-panel {
             flex-grow: 1;
             background-color: @inset-panel-background-color;
             border: 1px solid @inset-panel-border-color;
+
+            overflow: auto;
         }
         .command-bar {
             display: block;
