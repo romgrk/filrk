@@ -43,7 +43,20 @@ class AutocompletePath extends View
 
         console.log window.autocomp = @
 
-    # Public: input change handler
+    # Public: set the path in which files are being autocompleted
+    #
+    # Returns nothing.
+    setPath: (p) ->
+        @path = p
+        Fs.readdir(@path, @updateList.bind(@))
+
+    ###
+    Section: event handling
+    ###
+
+    # Private: input change handler
+    #
+    # Returns nothing.
     inputChanged: =>
         return unless @list? and @list.length > 0
 
@@ -61,6 +74,9 @@ class AutocompletePath extends View
         completions = _.union(lists...)
         @updateElement(completions)
 
+    # Private: reset and re-position the element, when the popup shows up
+    #
+    # Returns nothing.
     updateElement: (items) =>
         @listElement.empty()
         for item in items
@@ -69,24 +85,18 @@ class AutocompletePath extends View
         unless @isVisible()
             @show()
 
-        # @top @input.top()
-        # @left @input.left()
-        # console.log @input.top()
-        # console.log @input.left()
         console.log @css('top': 0)
         console.log @css('left': 0)
 
-
+    # Private: callback for Fs.readdir
+    #
+    # Returns nothing.
     updateList: (err, files) ->
         if err?
             console.error err
             @list = null
         else
             @list = files
-
-    setPath: (p) ->
-        @path = p
-        Fs.readdir(@path, @updateList.bind(@))
 
     attach: ->
         parent = @input.parent()[0]

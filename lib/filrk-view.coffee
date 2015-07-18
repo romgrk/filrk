@@ -4,20 +4,17 @@
 
 _       = require 'underscore-plus'
 Fs      = require 'fs-plus'
-Path    = require 'path'
 Glob    = require 'glob'
 
-WatchJS = require 'watchjs'
-watch   = WatchJS.watch
-unwatch = WatchJS.unwatch
-
 {CompositeDisposable} = require 'atom'
-{$, $$, View} = require 'space-pen'
+{$, $$, View}         = require 'space-pen'
 
 FileOp           = require './operations'
 Model            = require './filrk-model'
 AutocompletePath = require './autocomplete-path'
 
+Utils = require './utils.coffee'
+Path  = Utils.Path
 
 module.exports =
 class FilrkView extends View
@@ -101,14 +98,25 @@ class FilrkView extends View
                 when 'list' then @updateFileList()
 
     updatePath: ->
-
         path = @model.cwd
-        displayPath = path + '/'
+        displayPath = Path.replaceHomeDirWithTilde(path) + '/'
 
-        @pathLabel.text         @model.cwd + '/'
-        @autocomplete.setPath   @model.cwd
+        @autocomplete.setPath path
+        @pathLabel.text displayPath
 
+        labelWidth = parseInt(@pathLabel.trueWidth())
+        maxWidth   = parseInt(@pathContainer.css('max-width'))
+        maxWidth   = 200 if maxWidth is NaN
 
+        if labelWidth < maxWidth
+            containerWidth = labelWidth
+            labelOffset    = 0
+        else
+            containerWidth = maxWidth
+            labelOffset    = "-#{labelWidth - maxWidth}px"
+
+        @pathContainer.css 'width':   containerWidth
+        @pathLabel.css 'margin-left': labelOffset
 
     updateFileList: ->
         @fileList.empty()
