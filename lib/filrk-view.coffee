@@ -29,17 +29,20 @@ class FilrkView extends View
     @content: ->
         @div class: 'filrk', =>
             @div class: 'left-panel', =>
+
                 @div class: 'file-panel select-list', =>
                     @div class: 'file-panel-list', =>
                         @ul class: 'list-group', outlet: 'fileList', =>
                             @li class: '', '~/file.txt'
                             @li class: '', '~/git/otherfile.txt'
+
                 @div class: 'command-bar', =>
-                    @div class: 'path-container', =>
+                    @div class: 'path-container', outlet: 'pathContainer', =>
                         @span class: 'path-label', outlet: 'pathLabel'
                     @div class: 'input-container', outlet: 'inputContainer', =>
-                        @input type: 'text', class: 'path-input', outlet: 'pathInput'
-            @div class: 'right-panel inset-panel', =>
+                        @input class: 'path-input', outlet: 'pathInput'
+
+            @div class: 'right-panel', =>
                 @ul class: 'list-group', =>
                     @li class: 'list-item', '~/file.txt'
                     @li class: 'list-item', '~/git/otherfile.txt'
@@ -94,12 +97,18 @@ class FilrkView extends View
             # console.log change
             name = change.name
             switch name
-                when 'cwd' then @updatePath()
+                when 'cwd'  then @updatePath()
                 when 'list' then @updateFileList()
 
     updatePath: ->
-        @pathLabel.text         @model.cwd
+
+        path = @model.cwd
+        displayPath = path + '/'
+
+        @pathLabel.text         @model.cwd + '/'
         @autocomplete.setPath   @model.cwd
+
+
 
     updateFileList: ->
         @fileList.empty()

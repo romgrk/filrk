@@ -83,13 +83,11 @@ atom-panel.filrk-panel {
             display:        flex;
             flex-direction: row;
 
-            // background-color: @path-background-color;
             border: 1px solid @input-border-color;
             // background-color: @input-background-color;
 
             .font();
 
-            // TODO make this cool shadow appear
             &::before {
                 position: absolute;
                 display:  inline-block;
@@ -122,7 +120,7 @@ atom-panel.filrk-panel {
                 transition: width .5s ease;
 
                 .path-label {
-                    position: relative;
+                    position: absolute;
                     display:  inline-block;
                     padding-left: 10px;
 
