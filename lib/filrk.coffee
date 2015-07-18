@@ -42,9 +42,19 @@ module.exports = Filrk =
     toggle: ->
         if @panel.isVisible()
             @panel.hide()
+            @restoreFocus()
         else
+            @storeFocusedElement()
             @panel.show()
             @filrkView.focus()
+
+    storeFocusedElement: ->
+        @previouslyFocusedElement = document.activeElement
+
+    restoreFocus: ->
+        if @previouslyFocusedElement?
+            @previouslyFocusedElement.focus()
+        @previouslyFocusedElement = null
 
     serialize: ->
         # filrkViewState: @filrkView.serialize()

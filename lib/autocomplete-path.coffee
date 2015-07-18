@@ -13,9 +13,19 @@ class AutocompletePath extends View
 
     input: null
 
+    # Dir where to look for files
     path: null
+
+    # Files in *path*
     list: null
 
+    # Completion candidates in order
+    completions: null
+
+    # {Integer} Index, to cycle to completion list
+    completionIndex: 0
+
+    # Set to true to use input text as the complete path
     useValueAsPath: false
 
     @content: ->
@@ -48,7 +58,11 @@ class AutocompletePath extends View
     # Returns nothing.
     setPath: (p) ->
         @path = p
-        Fs.readdir(@path, @updateList.bind(@))
+        Fs.readdir(@path, @readdirCallback.bind(@))
+
+    # Public: cancels the autocompletion
+    cancel: =>
+        @hide()
 
     ###
     Section: event handling
@@ -58,7 +72,9 @@ class AutocompletePath extends View
     #
     # Returns nothing.
     inputChanged: =>
-        return unless @list? and @list.length > 0
+        unless @list? and @list.length > 0
+            @cancel()
+            return
 
         lead = @input.val()
         lists = []
@@ -72,12 +88,21 @@ class AutocompletePath extends View
             return false
 
         completions = _.union(lists...)
-        @updateElement(completions)
+        completions.unshift lead        # lead is always candidate 0
+
+        @populateList(completions)
+
+        @completionIndex = 0
+        @completions     = completions
+
+    autocompleteNext: ->
+
+    autocompletePrevious: ->
 
     # Private: reset and re-position the element, when the popup shows up
     #
     # Returns nothing.
-    updateElement: (items) =>
+    populateList: (items) =>
         @listElement.empty()
         for item in items
             @listElement.append(AutocompletePath.createItem(item))
@@ -85,13 +110,13 @@ class AutocompletePath extends View
         unless @isVisible()
             @show()
 
-        console.log @css('top': 0)
-        console.log @css('left': 0)
+        @css('top': 0)
+        @css('left': 0)
 
     # Private: callback for Fs.readdir
     #
     # Returns nothing.
-    updateList: (err, files) ->
+    readdirCallback: (err, files) ->
         if err?
             console.error err
             @list = null

@@ -75,6 +75,10 @@ class FilrkView extends View
             'core:cancel':  => @pathInput.blur()
             'core:confirm': => @inputConfirmed()
 
+            'filrk:autocomplete-next':      => @inputConfirmed()
+            'filrk:autocomplete-previous':  => @inputConfirmed()
+            'filrk:autocomplete-confirm':   => @inputConfirmed()
+
         @pathInput.on('input', @inputChanged.bind(@))
 
         Object.observe(@model, @modelChanged.bind(@))
@@ -99,7 +103,11 @@ class FilrkView extends View
 
     updatePath: ->
         path = @model.cwd
-        displayPath = Path.replaceHomeDirWithTilde(path) + '/'
+        pathInfo = Path.parse path
+
+        displayPath = Path.replaceHomeDirWithTilde(path)
+        unless pathInfo.root is pathInfo.dir
+            displayPath += Path.sep
 
         @autocomplete.setPath path
         @pathLabel.text displayPath
@@ -125,12 +133,16 @@ class FilrkView extends View
             @fileList.append FilrkView.entry(file, icon)
 
     ###
-    Section: pathInput handling
+    Section: event handling
     ###
 
     inputConfirmed: ->
         text = @pathInput.val()
         @clearInput()
+
+        # TODO
+        # parse input to detect if path really exists
+        # if not, ask to create a dir/file with that name
 
         @model.setCWD text
 
