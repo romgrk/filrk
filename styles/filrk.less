@@ -85,12 +85,12 @@ atom-panel.filrk-panel {
             .path-container {
                 position: relative;
                 display: inline-block;
+                width: 200px;
                 height: @component-line-height;
                 overflow: hidden;
                 color: darken(@text-color, 25%);
 
                 transition: width .5s ease;
-
 
                 .path-label {
                     position: relative;
@@ -115,10 +115,14 @@ atom-panel.filrk-panel {
                 margin: 0;
                 padding: 0;
 
+
+                background-color: rgba(200, 20, 20, 0.3);
             }
 
             input.path-input {
                 display: inline-block;
+                // display: none;
+
 
                 height: @component-line-height;
 
@@ -130,6 +134,8 @@ atom-panel.filrk-panel {
                 &::shadow .inner-editor {
                     height: @component-line-height;
                 }
+
+                background-color: rgba(200, 200, 20, 0.3);
 
             }
         }
