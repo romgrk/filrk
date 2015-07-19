@@ -9,7 +9,6 @@ Glob    = require 'glob'
 {CompositeDisposable} = require 'atom'
 {$, $$, View}         = require 'space-pen'
 
-Filrk            = require './filrk.coffee'
 FilePanelModel   = require './filrk-model.coffee'
 FilePanelView    = require './file-panel-view.coffee'
 FileOp           = require './operations.coffee'
@@ -151,7 +150,7 @@ class FilrkView extends View
         else if Fs.existsSync(newpath)
             atom.workspace.open newpath
             @clearInput()
-            Filrk.hide()
+            atom.packages.getActivePackage('filrk').mainModule.hide()
         else
             console.log newpath
             @clearInput()
