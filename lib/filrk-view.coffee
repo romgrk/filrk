@@ -148,7 +148,12 @@ class FilrkView extends View
         @autocomplete.cancel()
 
         value = @pathInput.val()
-        success = @changeDir value
+        newpath = Path.resolve @activePanel.getPath(), value
+
+        if Fs.isDirectorySync(newpath)
+            @changeDir value
+        else
+            atom.workspace.open newpath
 
         # TODO
         # parse input to detect if path really exists

@@ -113,14 +113,15 @@ class AutocompletePath extends View
             @cancel()
             return
 
-        # lead = @input.val()
+        lead = lead.toLowerCase()
+
         lists = []
         lists[0] = _.filter @list, (file) ->
-            idx = file.indexOf lead
+            idx = file.toLowerCase().indexOf lead
             return true if idx == 0
             return false
         lists[1] = _.filter @list, (file) ->
-            idx = file.indexOf lead
+            idx = file.toLowerCase().indexOf lead
             return true if idx == 1
             return false
 
