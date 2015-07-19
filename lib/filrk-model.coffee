@@ -74,3 +74,15 @@ module.exports = class FilrkModel
 
     getPath: ->
         return @path
+
+    getList: ->
+        @sys.list @path, base: true
+
+    getStats: ->
+        @sys.statsList @path
+
+    getDirs: ->
+        @sys.list @path, base: true, dirs: false
+
+    getFiles: ->
+        @sys.list @path, base: true, files: false

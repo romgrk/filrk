@@ -75,7 +75,7 @@ class System
         return @cwd
 
     cd: (path) ->
-        @cwd = path
+        @cwd = @resolve path
 
     join: (paths...) ->
         paths = for p in paths

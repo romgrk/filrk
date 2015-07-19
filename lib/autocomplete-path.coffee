@@ -86,7 +86,6 @@ class AutocompletePath extends View
         @attach()
 
         @input.css('position': 'relative')
-        # @input.on 'input', @completeLead.bind(@)
         @input.on 'blur', => @hide()
 
         window.autocomp = @
@@ -95,8 +94,11 @@ class AutocompletePath extends View
     #
     # Returns nothing.
     setDir: (path) ->
-        @system.cd path
-        @list = @system.list('.', base: true)
+        @system.cwd = path
+        @list = @system.list(path, base: true)
+
+    setCandidates: (list) ->
+        @list = list
 
     # Public: cancels the popup
     cancel: =>
@@ -114,15 +116,15 @@ class AutocompletePath extends View
             @cancel()
             return
 
-        lead = lead.toLowerCase()
+        lowerCaseLead = lead.toLowerCase()
 
         lists = []
         lists[0] = _.filter @list, (file) ->
-            idx = file.toLowerCase().indexOf lead
+            idx = file.toLowerCase().indexOf lowerCaseLead
             return true if idx == 0
             return false
         lists[1] = _.filter @list, (file) ->
-            idx = file.toLowerCase().indexOf lead
+            idx = file.toLowerCase().indexOf lowerCaseLead
             return true if idx == 1
             return false
 

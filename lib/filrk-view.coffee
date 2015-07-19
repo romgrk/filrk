@@ -111,8 +111,8 @@ class FilrkView extends View
 
     # Public: retrieve path from model and render it
     updatePath: ->
-        path     = @activePanel.getPath()
-        @autocomplete.setDir path
+        path = @activePanel.getPath()
+        @autocomplete.setCandidates @activePanel.getModel().getList()
 
         pathInfo    = Path.parse path
         displayPath = Path.replaceHomeDirWithTilde(path)
@@ -165,6 +165,7 @@ class FilrkView extends View
         else if text.match /~/
             @changeDir '~'
         else if text.match(Path.sep + '$')
+            @pathInput.val(text[0...-1])
             @inputConfirmed()
         else
             @autocomplete.completeLead(text)
@@ -201,7 +202,6 @@ class FilrkView extends View
         success = @activePanel.changeDir path
         if success
             @clearInput()
-            @autocomplete.setDir path
         return success
 
     ###
@@ -218,6 +218,7 @@ class FilrkView extends View
         @updatePath()
 
     focus: ->
+        @filePanel.renderList()
         @pathInput.focus()
 
     getFilePanelModel: ->
