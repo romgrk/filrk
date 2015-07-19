@@ -20,6 +20,9 @@ class AutocompletePath extends View
     # {JQuery}
     selectedElement: null
 
+    # File system manipulator
+    system: null
+
     # Dir where to look for files
     dir: null
 
@@ -36,13 +39,6 @@ class AutocompletePath extends View
     useValueAsPath: false
 
     ###
-    Section: filters
-    ###
-
-    @filterDirs: (path) ->
-        return Fs.isDirectorySync(Path.resolve @dir, path)
-
-    ###
     Section: elements
     ###
 
@@ -56,6 +52,17 @@ class AutocompletePath extends View
             @li class: 'completion-item', text
 
     ###
+    Section: events
+    ###
+
+    # Public: emit event
+    emit: (eventName, value) ->
+        @emitter.emit eventName, value
+
+    on:  (args...) -> @emitter.on args...
+    off: (args...) -> @emitter.off args...
+
+    ###
     Section: instance
     ###
 
@@ -63,6 +70,7 @@ class AutocompletePath extends View
         @input = if input[0]? then input else $(input)
         super()
 
+        @system  = new System()
         @emitter = new Emitter()
 
         @attach()
@@ -76,20 +84,13 @@ class AutocompletePath extends View
     # Public: set the path in which files are being autocompleted
     #
     # Returns nothing.
-    setDir: (p) ->
-        @dir = p
-        Fs.readdir(@dir, @readdirCallback.bind(@))
+    setDir: (path) ->
+        @system.cd path
+        Fs.readdir(@system.pwd(), @readdirCallback.bind(@))
 
     # Public: cancels the popup
     cancel: =>
         @hide()
-
-    # Public: emit event
-    emit: (eventName, value) ->
-        @emitter.emit eventName, value
-
-    on:  (args...) -> @emitter.on args...
-    off: (args...) -> @emitter.off args...
 
     ###
     Section: completion functions
@@ -116,10 +117,9 @@ class AutocompletePath extends View
 
         completions = _.union(lists...)
 
-        # Keep only directories
-        console.log completions
-        completions = _.filter completions, @constructor.filterDirs, @
-        console.log completions
+        completions = _.filter completions, (file) =>
+            @system.isDir file
+        , @
 
         completions.unshift lead # lead is kept as candidate 0
 

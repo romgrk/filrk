@@ -7,10 +7,6 @@ Fs      = require 'fs-plus'
 Path    = require 'path'
 Glob    = require 'glob'
 
-WatchJS = require 'watchjs'
-watch   = WatchJS.watch
-unwatch = WatchJS.unwatch
-
 {CompositeDisposable} = require 'atom'
 {$, $$, View} = require 'space-pen'
 

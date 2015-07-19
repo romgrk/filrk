@@ -136,4 +136,4 @@ PathExpansion =
 _.extend Path, PathExpansion
 
 
-module.exports = {Font, Config, Keymap, Path}
+module.exports = {Font, Config, Keymap, Path, Fs, OS}

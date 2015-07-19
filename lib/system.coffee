@@ -71,6 +71,12 @@ class System
     # Section: Path/FileSystem utilities (static)
     ############################################################################
 
+    pwd: ->
+        return @cwd
+
+    cd: (path) ->
+        @cwd = path
+
     join: (paths...) ->
         paths = for p in paths
             Fs.normalize p
@@ -439,7 +445,6 @@ class System
     copyDir: (oldpath, newpath) ->
         Fs.copySync(oldpath, newpath)
 
-
     rename: (oldpath, newpath, overwrite=true) ->
         unless @exists oldpath
             throw new Error("Path doesnt exit: #{oldpath}")
@@ -513,6 +518,5 @@ class System
         catch err
             console.error err.message
             console.error err.printStackTrace()
-
 
 module.exports = {System, Fyler}
