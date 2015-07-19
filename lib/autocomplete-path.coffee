@@ -29,7 +29,7 @@ class AutocompletePath extends View
     # Files in *path*
     list: null
 
-    # Completion candidates in order
+    # List of {Strings}: Completion candidates in order
     completions: null
 
     # {Integer} Index, to cycle to completion list
@@ -118,7 +118,7 @@ class AutocompletePath extends View
         completions = _.union(lists...)
 
         # Keep only directories
-        completions = _.filter completions, @constructor.filterDirs, @
+        completions = _.filter completions, @filterDir, @
 
         # *lead* is kept as candidate 0
         completions.unshift lead
@@ -144,6 +144,14 @@ class AutocompletePath extends View
 
         @input.val @completions[@completionIndex]
         @selectItem @completionIndex
+
+    ###
+    Section: filters
+    ###
+
+    filterDir: (path) ->
+        console.log path, @system.isDir(path)
+        return @system.isDir(path)
 
     ###
     Section: rendering
