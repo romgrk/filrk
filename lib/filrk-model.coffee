@@ -24,7 +24,7 @@ module.exports = class FilrkModel
     cwd: null
 
     # Public: {Array} of files listed in file-panel
-    list: []
+    files: []
 
     # Public: {Array} of selected paths
     selection: []
@@ -34,15 +34,20 @@ module.exports = class FilrkModel
 
     constructor: (cwd) ->
         @sys = new System('/')
-        @setCWD(cwd || atom.project.getPaths()[0] || process.cwd())
+        @changeDir(cwd || atom.project.getPaths()[0] || process.cwd())
 
-    setCWD: (path) ->
-        path = @sys.resolve(@cwd || '/', path)
-        stats = @sys.f(path)
+    changeDir: (path) ->
+        newPath = @sys.resolve(@cwd || '', path)
+        stats = @sys.f(newPath)
         if stats.exists and stats.isDir
             @cwd     = stats.path
             @sys.cwd = stats.path
-
-            @list = @sys.statsList(@cwd)
+            @files = @sys.statsList(@cwd)
+            return true
         else
-            console.warn "Path doesn't exist ", path
+            console.log 'couldnt switch to:', path
+            console.log 'newPath: ', newPath
+            console.log '@cwd: ', @cwd
+            console.log stats.exists, stats.isDir
+            console.log stats
+            return false

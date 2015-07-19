@@ -1,11 +1,12 @@
 
 _       = require 'underscore-plus'
 Fs      = require 'fs-plus'
-Emitter = require('event-kit').Emitter
+Emitter = window.require('event-kit').Emitter # FIXME
 
 {CompositeDisposable} = require 'atom'
 {$, $$, View}         = require 'space-pen'
 
+Path     = require('./utils').Path
 {System} = require './system'
 
 module.exports =
@@ -20,7 +21,7 @@ class AutocompletePath extends View
     selectedElement: null
 
     # Dir where to look for files
-    path: null
+    dir: null
 
     # Files in *path*
     list: null
@@ -33,6 +34,17 @@ class AutocompletePath extends View
 
     # Set to true to use input text as the complete path
     useValueAsPath: false
+
+    ###
+    Section: filters
+    ###
+
+    @filterDirs: (path) ->
+        return Fs.isDirectorySync(Path.resolve @dir, path)
+
+    ###
+    Section: elements
+    ###
 
     @content: ->
         @div class: 'autocomplete-path-container', =>
@@ -104,19 +116,25 @@ class AutocompletePath extends View
 
         completions = _.union(lists...)
 
+        # Keep only directories
+        console.log completions
+        completions = _.filter completions, @constructor.filterDirs, @
+        console.log completions
+
         completions.unshift lead # lead is kept as candidate 0
+
         @completionIndex = 0
         @completions     = completions
+
+        if @completions.length == 2
+            console.log @getLastCompletion()
+            @emit 'single-match-left'
 
         @populateList(completions)
 
     # Public: cycle through the completion candidates
     cycle: (moveAmount) =>
         return unless @completions? and @completions.length > 0
-
-        if @completions.length == 2
-            console.log @completions
-            @emit 'single-match-left'
 
         @completionIndex += moveAmount
 
@@ -160,9 +178,22 @@ class AutocompletePath extends View
         @css('top': 0)
         @css('left': 0)
 
+    # Public: attach to DOM
     attach: ->
         parent = @input.parent()[0]
         parent.appendChild @.get()[0]
+
+    ###
+    Section: model functions
+    ###
+
+    # Public: {boolean}
+    hasSingleCompletionLeft: ->
+        @completions? and @completions.length is 2
+
+    # Public: get next completion
+    getLastCompletion: () ->
+        return @completions[@completions.length - 1]
 
     # Private: callback for Fs.readdir
     #

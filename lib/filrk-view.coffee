@@ -19,6 +19,10 @@ Path  = Utils.Path
 module.exports =
 class FilrkView extends View
 
+    # Options
+    @singleMatchJumps         = false
+    @completeSingleMatchJumps = true
+
     ###
     Section: html content of the view's element
     ###
@@ -75,15 +79,16 @@ class FilrkView extends View
             'core:cancel':  => @pathInput.blur()
             'core:confirm': => @inputConfirmed()
 
-            'filrk:autocomplete-next': => @autocomplete.cycle(1)
-            'filrk:autocomplete-previous': => @autocomplete.cycle(-1)
+            'filrk:autocomplete-next': @completeCycle.bind @, 1
+            'filrk:autocomplete-previous': @completeCycle.bind @, -1
             # 'filrk:autocomplete-previous':  => @inputConfirmed()
             # 'filrk:autocomplete-confirm':   => @inputConfirmed()
 
         @pathInput.on('focus', @updatePath.bind(@))
         @pathInput.on('input', @inputChanged.bind(@))
 
-        @autocomplete.on 'single-match-left', => @inputConfirmed()
+        @autocomplete.on 'single-match-left', =>
+            @inputConfirmed() if FilrkView.singleMatchJumps
 
         Object.observe(@model, @modelChanged.bind(@))
 
@@ -99,11 +104,10 @@ class FilrkView extends View
 
     modelChanged: (changes) ->
         for change in changes
-            # console.log change
             name = change.name
             switch name
-                when 'cwd'  then @updatePath()
-                when 'list' then @updateFileList()
+                when 'cwd'   then @updatePath()
+                when 'files' then @updateFileList()
 
     # Public: retrieve path from model and render it
     updatePath: ->
@@ -111,7 +115,7 @@ class FilrkView extends View
         pathInfo = Path.parse path
 
         displayPath = Path.replaceHomeDirWithTilde(path)
-        unless pathInfo.root is pathInfo.dir
+        unless path is pathInfo.root
             displayPath += Path.sep
 
         @autocomplete.setDir path
@@ -133,7 +137,7 @@ class FilrkView extends View
 
     updateFileList: ->
         @fileList.empty()
-        for file in @model.list
+        for file in @model.files
             icon = if file.isDir then 'file-directory' else 'file-text'
             @fileList.append FilrkView.entry(file, icon)
 
@@ -142,34 +146,54 @@ class FilrkView extends View
     ###
 
     inputConfirmed: ->
-        text = @pathInput.val()
-        @clearInput()
+        @autocomplete.cancel()
+
+        value = @pathInput.val()
+        success = @changeDir value
+
+        # unless success
+        #     if @autocomplete.hasSingleCompletionLeft()
+        #         @changeDir @autocomplete.getLastCompletion()
 
         # TODO
         # parse input to detect if path really exists
         # if not, ask to create a dir/file with that name
 
-        @model.setCWD text
-
     inputChanged: (event) ->
         text = @pathInput.val()
-        console.log text, event
 
         if text.match /\.\./
-            @model.setCWD('..')
-            @clearInput()
+            @changeDir '..'
         else if text.match /~/
-            @model.setCWD('~')
-            @clearInput()
+            @changeDir '~'
+        else if text.match(Path.sep + '$')
+            @inputConfirmed()
         else
             @autocomplete.completeLead(text)
 
-    # completeNext: ->
+    completeCycle: (amount) ->
+        @autocomplete.cycle amount
 
+        return unless FilrkView.completeSingleMatchJumps
+        return unless @autocomplete.hasSingleCompletionLeft()
+
+        completion = @autocomplete.getLastCompletion()
+        @pathInput.val completion
+        console.log 'completed and confirmed: ', completion
+        @inputConfirmed()
 
     ###
     Section: display functions
     ###
+
+    # Public: set model's working dir to path
+    #
+    # Returns {boolean} *success*
+    changeDir: (path) ->
+        success = @model.changeDir path
+        console.log success, path
+        @clearInput() if success
+        return success
 
     clearInput: ->
         @autocomplete.cancel()
