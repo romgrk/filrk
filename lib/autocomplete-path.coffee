@@ -1,3 +1,9 @@
+#
+# file: autocomplete-path.coffee
+# author: romgrk
+# description:
+#   autocomplete extension for any input[text]
+#   this class is both view and provider
 
 _       = require 'underscore-plus'
 Fs      = require 'fs-plus'

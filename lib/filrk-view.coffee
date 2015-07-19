@@ -31,7 +31,7 @@ class FilrkView extends View
         @div class: 'filrk', =>
             @div class: 'left-panel', =>
 
-                @div class: 'file-panel select-list', =>
+                @div class: 'file-panel select-list', outlet: 'filePanel', =>
                     @div class: 'file-panel-list', =>
                         @ul class: 'list-group', outlet: 'fileList', =>
                             @li class: '', '~/file.txt'
@@ -62,6 +62,7 @@ class FilrkView extends View
 
     subscriptions: null
 
+    # {AutocompletePath} instance
     autocomplete: null
 
     ###
@@ -76,8 +77,12 @@ class FilrkView extends View
         @autocomplete  = new AutocompletePath(@pathInput)
 
         @registerInputCommands
-            'core:cancel':  => @pathInput.blur()
+            'core:cancel':  => @autocomplete.cancel()
             'core:confirm': => @inputConfirmed()
+
+            'filrk:make-root': @commandMakeRoot.bind @
+
+            'filrk:clear-input': @clearInput.bind(@)
 
             'filrk:autocomplete-next': @completeCycle.bind @, 1
             'filrk:autocomplete-previous': @completeCycle.bind @, -1
@@ -180,6 +185,15 @@ class FilrkView extends View
         @pathInput.val completion
         console.log 'completed and confirmed: ', completion
         @inputConfirmed()
+
+    ###
+    Section: commands
+    ###
+
+    commandMakeRoot: ->
+        @inputConfirmed()
+        # @file
+
 
     ###
     Section: display functions

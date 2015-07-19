@@ -12,10 +12,12 @@
     # 'ctrl-alt-space': 'filrk:run'
 
 '.filrk .path-input':
-    'enter':     'core:confirm'
-    'backspace': 'native!'
+    'enter':      'core:confirm'
+    'ctrl-enter': 'filrk:make-root'
+    'ctrl-u':     'filrk:clear-input'
 
     'tab':       'filrk:autocomplete-next'
     'shift-tab': 'filrk:autocomplete-previous'
 
-    'ctrl-u': 'filrk:clear-input'
+
+    'backspace': 'native!'

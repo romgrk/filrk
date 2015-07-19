@@ -14,19 +14,20 @@
     max-height: 250px;
 
     .completion-list {
-        margin: 0 -5px;
-        padding: 0 5px;
+        margin:  0 -5px;
+        padding: 0;
 
         color:            @popup-color;
         background-color: @popup-bg;
 
-        border: 1px solid @overlay-border-color;
-        box-shadow: 0px 0px 5px 4px fade(#000000, 30%);
+        border:        1px solid @overlay-border-color;
         border-radius: 2px;
+        box-shadow:    0px 0px 5px 4px fade(#000000, 30%);
 
         list-style-type: none;
         li {
-            font: 14px "Monospace";
+            font: 12px "Monospace";
+            padding: 0 5px;
             &.selected {
                 background-color: @select-bg;
             }
