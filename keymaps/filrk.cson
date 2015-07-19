@@ -7,9 +7,9 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
+
 'atom-workspace':
     'ctrl-alt-p':     'filrk:toggle'
-    # 'ctrl-alt-space': 'filrk:run'
 
 '.filrk .path-input':
     'enter':      'core:confirm'
@@ -18,6 +18,5 @@
 
     'tab':       'filrk:autocomplete-next'
     'shift-tab': 'filrk:autocomplete-previous'
-
 
     'backspace': 'native!'

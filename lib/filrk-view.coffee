@@ -9,8 +9,9 @@ Glob    = require 'glob'
 {CompositeDisposable} = require 'atom'
 {$, $$, View}         = require 'space-pen'
 
-FileOp           = require './operations'
 Model            = require './filrk-model'
+FilePanelView    = require './file-panel-view.coffee'
+FileOp           = require './operations'
 AutocompletePath = require './autocomplete-path'
 
 Utils = require './utils.coffee'
@@ -31,11 +32,12 @@ class FilrkView extends View
         @div class: 'filrk', =>
             @div class: 'left-panel', =>
 
-                @div class: 'file-panel select-list', outlet: 'filePanel', =>
-                    @div class: 'file-panel-list', =>
-                        @ul class: 'list-group', outlet: 'fileList', =>
-                            @li class: '', '~/file.txt'
-                            @li class: '', '~/git/otherfile.txt'
+                @div class: 'file-panel', outlet: 'filePanelDiv'
+                # @div class: 'file-panel select-list', outlet: 'filePanel', =>
+                #     @div class: 'file-panel-list', =>
+                #         @ul class: 'list-group', outlet: 'fileList', =>
+                #             @li class: '', '~/file.txt'
+                #             @li class: '', '~/git/otherfile.txt'
 
                 @div class: 'command-bar', =>
                     @div class: 'path-container', outlet: 'pathContainer', =>
@@ -59,6 +61,7 @@ class FilrkView extends View
     ###
 
     model: null
+    filePanel: null
 
     activePanel: null
 
@@ -74,9 +77,11 @@ class FilrkView extends View
     constructor: () ->
         super()
 
-        @model         = new Model()
         @subscriptions = new CompositeDisposable
         @autocomplete  = new AutocompletePath(@pathInput)
+        @filePanel     = new FilePanelView(@filePanelDiv)
+
+        @activePanel = @filePanel
 
         @registerInputCommands
             'core:cancel':  => @autocomplete.cancel()
@@ -92,17 +97,15 @@ class FilrkView extends View
 
         @pathInput.on('focus', @updatePath.bind(@))
         @pathInput.on('input', @inputChanged.bind(@))
+        @pathInput.on('keydown', @inputKeydown.bind(@))
 
         @autocomplete.on 'single-match-left', =>
             @inputConfirmed() if FilrkView.singleMatchJumps
 
-
-        @activePanel = @model
-
-        Object.observe(@model, @modelChanged.bind(@))
+        @filePanel.on 'path-changed', =>
+            @updatePath() if @activePanel is @filePanel
 
         @updatePath()
-        @updateFileList()
 
     registerInputCommands: (commands) ->
         atom.commands.add '.command-bar .path-input', commands
@@ -111,23 +114,16 @@ class FilrkView extends View
     Section: model observation
     ###
 
-    modelChanged: (changes) ->
-        for change in changes
-            name = change.name
-            switch name
-                when 'cwd'   then @updatePath()
-                when 'files' then @updateFileList()
-
     # Public: retrieve path from model and render it
     updatePath: ->
-        path = @activePanel.getPath()
-        pathInfo = Path.parse path
+        path     = @activePanel.getPath()
+        @autocomplete.setDir path
 
+        pathInfo    = Path.parse path
         displayPath = Path.replaceHomeDirWithTilde(path)
         unless path is pathInfo.root
             displayPath += Path.sep
 
-        @autocomplete.setDir path
         @pathLabel.text displayPath
 
         labelWidth = parseInt(@pathLabel.trueWidth())
@@ -144,12 +140,6 @@ class FilrkView extends View
         @pathContainer.css 'width':   containerWidth
         @pathLabel.css 'margin-left': labelOffset
 
-    updateFileList: ->
-        @fileList.empty()
-        for file in @model.files
-            icon = if file.isDir then 'file-directory' else 'file-text'
-            @fileList.append FilrkView.entry(file, icon)
-
     ###
     Section: event handling
     ###
@@ -159,10 +149,6 @@ class FilrkView extends View
 
         value = @pathInput.val()
         success = @changeDir value
-
-        # unless success
-        #     if @autocomplete.hasSingleCompletionLeft()
-        #         @changeDir @autocomplete.getLastCompletion()
 
         # TODO
         # parse input to detect if path really exists
@@ -180,6 +166,13 @@ class FilrkView extends View
         else
             @autocomplete.completeLead(text)
 
+    inputKeydown: (event) ->
+        return if event.repeat
+        return unless event.keyCode is 8
+        return unless @pathInput.val() is ''
+
+        @changeDir '..'
+
     completeCycle: (amount) ->
         @autocomplete.cycle amount
 
@@ -188,7 +181,6 @@ class FilrkView extends View
 
         completion = @autocomplete.getLastCompletion()
         @pathInput.val completion
-        console.log 'completed and confirmed: ', completion
         @inputConfirmed()
 
     ###
@@ -199,18 +191,19 @@ class FilrkView extends View
         @inputConfirmed()
         # @file
 
-    ###
-    Section: display functions
-    ###
-
     # Public: set model's working dir to path
     #
     # Returns {boolean} *success*
     changeDir: (path) ->
-        success = @model.changeDir path
-        console.log success, path
-        @clearInput() if success
+        success = @activePanel.changeDir path
+        if success
+            @clearInput()
+            @autocomplete.setDir path
         return success
+
+    ###
+    Section: display functions
+    ###
 
     # Public: clear input and hide autocomp popup
     clearInput: ->

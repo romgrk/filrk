@@ -5,6 +5,7 @@
 _       = require 'underscore-plus'
 Fs      = require 'fs-plus'
 Glob    = require 'glob'
+Emitter = require('event-kit').Emitter
 
 {CompositeDisposable} = require 'atom'
 {$, $$, View}         = require 'space-pen'
@@ -32,21 +33,39 @@ class FilePanelView extends View
                 @span class: "icon icon-#{icon ? 'plus'}", 'data-name': stats.base, 'data-path': stats.path, stats.base
 
     ###
-    Section: instance
+    Section: properties
     ###
 
     model: null
 
+    emitter: null
+
+    files: null
+
     subscriptions: null
+
+    ###
+    Section: events
+    ###
+
+    emit: (args...) -> @emitter.emit args...
+    on:   (args...) -> @emitter.on args...
+    off:  (args...) -> @emitter.off args...
+
+    ###
+    Section: instance
+    ###
 
     constructor: (element) ->
         super()
 
         @model         = new Model
+        @emitter       = new Emitter
         @subscriptions = new CompositeDisposable
 
         Object.observe(@model, @modelChanged.bind(@))
 
+        @files = @model.files
         @renderFileList()
 
         if element?
@@ -67,9 +86,12 @@ class FilePanelView extends View
                 when 'files' then @filesChanged()
 
     pathChanged: () ->
+        @emit 'path-changed'
         # do nothing
 
     filesChanged: () ->
+        @emit 'files-changed'
+        @files = @model.files
         @renderFileList()
 
     ###
@@ -77,14 +99,17 @@ class FilePanelView extends View
     ###
 
     renderFileList: ->
-        @fileList.empty()
-        for file in @model.files
+        @listElement.empty()
+        for file in @files
             icon = if file.isDir then 'file-directory' else 'file-text'
-            @fileList.append @constructor.createItem(file, icon)
+            @listElement.append @constructor.createItem(file, icon)
 
     ###
     Section: access/utils
     ###
+
+    changeDir: (path) ->
+        @model.changeDir path
 
     getPath: ->
         @model.getPath()

@@ -38,10 +38,18 @@ module.exports = class FilrkModel
         if stats.exists and stats.isDir
             @path     = stats.path
             @sys.cwd = stats.path
-            @files = @sys.statsList(@path)
+            @processFiles()
             return true
         else
             return false
+
+    processFiles: ->
+        entries = @sys.statsList(@path)
+
+        dirs = _.filter entries, (e) -> e.isDir
+        rest = _.filter entries, (e) -> not e.isDir
+
+        @files = _.union(dirs, rest)
 
     getPath: ->
         return @path

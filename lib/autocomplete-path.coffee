@@ -7,7 +7,7 @@
 
 _       = require 'underscore-plus'
 Fs      = require 'fs-plus'
-Emitter = window.require('event-kit').Emitter # FIXME
+Emitter = require('event-kit').Emitter
 
 {CompositeDisposable} = require 'atom'
 {$, $$, View}         = require 'space-pen'
@@ -40,6 +40,9 @@ class AutocompletePath extends View
 
     # {Integer} Index, to cycle to completion list
     completionIndex: 0
+
+    # Filter dirs
+    onlyDirectories: false
 
     # Set to true to use input text as the complete path
     useValueAsPath: false
@@ -124,7 +127,8 @@ class AutocompletePath extends View
         completions = _.union(lists...)
 
         # Keep only directories
-        completions = _.filter completions, @filterDir, @
+        if @onlyDirectories
+            completions = _.filter completions, @filterDir, @
 
         # *lead* is kept as candidate 0
         completions.unshift lead
