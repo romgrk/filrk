@@ -21,7 +21,7 @@ module.exports =
 class FilePanelView extends View
 
     @content: ->
-        @div class: 'file-panel select-list', =>
+        @div class: 'file-panel select-list', tabIndex: 0, =>
             @div class: 'file-panel-list', =>
                 @ul class: 'list-group', outlet: 'listElement'
                     # li items
@@ -41,6 +41,8 @@ class FilePanelView extends View
 
     dirs: null
     files: null
+
+    activeElement: null
 
     subscriptions: null
 
@@ -68,9 +70,6 @@ class FilePanelView extends View
 
         if element?
             $(element).replaceWith @element
-
-    registerInputCommands: (commands) ->
-        atom.commands.add '.filrk .path-input', commands
 
     ###
     Section: model observation

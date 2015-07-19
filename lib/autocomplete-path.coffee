@@ -90,13 +90,6 @@ class AutocompletePath extends View
 
         window.autocomp = @
 
-    # Public: set the path in which files are being autocompleted
-    #
-    # Returns nothing.
-    setDir: (path) ->
-        @system.cwd = path
-        @list = @system.list(path, base: true)
-
     setCandidates: (list) ->
         @list = list
 

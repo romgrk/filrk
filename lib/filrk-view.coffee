@@ -35,10 +35,10 @@ class FilrkView extends View
                 @div class: 'file-panel', outlet: 'filePanelDiv'
 
                 @div class: 'command-bar', =>
-                    @div class: 'path-container', outlet: 'pathContainer', =>
-                        @span class: 'path-label', outlet: 'pathLabel'
+                    @div class: 'path-container', outlet: 'commandContainer', =>
+                        @span class: 'path-label', outlet: 'commandLabel'
                     @div class: 'input-container', outlet: 'inputContainer', =>
-                        @input class: 'path-input', outlet: 'pathInput'
+                        @input class: 'path-input', outlet: 'input'
 
             @div class: 'right-panel', =>
                 @ul class: 'list-group', =>
@@ -73,7 +73,7 @@ class FilrkView extends View
         super()
 
         @subscriptions = new CompositeDisposable
-        @autocomplete  = new AutocompletePath(@pathInput)
+        @autocomplete  = new AutocompletePath(@input)
         @filePanel     = new FilePanelView(@filePanelDiv)
 
         @activePanel = @filePanel
@@ -90,9 +90,9 @@ class FilrkView extends View
             'filrk:autocomplete-previous': @completeCycle.bind @, -1
             'filrk:clear-input': @clearInput.bind(@)
 
-        @pathInput.on('focus', @updatePath.bind(@))
-        @pathInput.on('input', @inputChanged.bind(@))
-        @pathInput.on('keydown', @inputKeydown.bind(@))
+        @input.on('focus', @updatePath.bind(@))
+        @input.on('input', @inputChanged.bind(@))
+        @input.on('keydown', @inputKeydown.bind(@))
 
         @autocomplete.on 'single-match-left', =>
             @inputConfirmed() if FilrkView.singleMatchJumps
@@ -102,12 +102,58 @@ class FilrkView extends View
 
         @updatePath()
 
+    registerPanelCommands: (commands) ->
+        atom.commands.add '.filrk .file-panel', commands
+
     registerInputCommands: (commands) ->
-        atom.commands.add '.command-bar .path-input', commands
+        atom.commands.add '.filrk .path-input', commands
 
     ###
     Section: model observation
     ###
+
+    findMode:
+        render: ->
+
+    pathMode:
+        confirm: ->
+            value = @input.val()
+            newpath = Path.resolve @activePanel.getPath(), value
+
+            if Fs.isDirectorySync(newpath)
+                @changeDir value
+            else if Fs.existsSync(newpath)
+                atom.workspace.open newpath
+                @clearInput()
+                atom.packages.getActivePackage('filrk').mainModule.hide()
+            else
+                @clearInput()
+                # TODO propose to create dir
+
+        update: ->
+            path = @activePanel.getPath()
+            @autocomplete.setCandidates @activePanel.getModel().getList()
+
+            pathInfo    = Path.parse path
+            displayPath = Path.replaceHomeDirWithTilde(path)
+            unless path is pathInfo.root
+                displayPath += Path.sep
+
+            @commandLabel.text displayPath
+
+            labelWidth = parseInt(@commandLabel.trueWidth())
+            maxWidth   = parseInt(@commandContainer.css('max-width'))
+            maxWidth   = 200 if maxWidth is NaN
+
+            if labelWidth < maxWidth
+                containerWidth = labelWidth
+                labelOffset    = 0
+            else
+                containerWidth = maxWidth
+                labelOffset    = "-#{labelWidth - maxWidth}px"
+
+            @commandContainer.css 'width':   containerWidth
+            @commandLabel.css 'margin-left': labelOffset
 
     # Public: retrieve path from model and render it
     updatePath: ->
@@ -119,10 +165,10 @@ class FilrkView extends View
         unless path is pathInfo.root
             displayPath += Path.sep
 
-        @pathLabel.text displayPath
+        @commandLabel.text displayPath
 
-        labelWidth = parseInt(@pathLabel.trueWidth())
-        maxWidth   = parseInt(@pathContainer.css('max-width'))
+        labelWidth = parseInt(@commandLabel.trueWidth())
+        maxWidth   = parseInt(@commandContainer.css('max-width'))
         maxWidth   = 200 if maxWidth is NaN
 
         if labelWidth < maxWidth
@@ -132,8 +178,8 @@ class FilrkView extends View
             containerWidth = maxWidth
             labelOffset    = "-#{labelWidth - maxWidth}px"
 
-        @pathContainer.css 'width':   containerWidth
-        @pathLabel.css 'margin-left': labelOffset
+        @commandContainer.css 'width':   containerWidth
+        @commandLabel.css 'margin-left': labelOffset
 
     ###
     Section: event handling
@@ -142,7 +188,7 @@ class FilrkView extends View
     inputConfirmed: ->
         @autocomplete.cancel()
 
-        value = @pathInput.val()
+        value = @input.val()
         newpath = Path.resolve @activePanel.getPath(), value
 
         if Fs.isDirectorySync(newpath)
@@ -158,14 +204,14 @@ class FilrkView extends View
 
 
     inputChanged: (event) ->
-        text = @pathInput.val()
+        text = @input.val()
 
         if text.match /\.\./
             @changeDir '..'
         else if text.match /~/
             @changeDir '~'
         else if text.match(Path.sep + '$')
-            @pathInput.val(text[0...-1])
+            @input.val(text[0...-1])
             @inputConfirmed()
         else
             @autocomplete.completeLead(text)
@@ -173,7 +219,7 @@ class FilrkView extends View
     inputKeydown: (event) ->
         return if event.repeat
         return unless event.keyCode is 8
-        return unless @pathInput.val() is ''
+        return unless @input.val() is ''
 
         @changeDir '..'
 
@@ -184,7 +230,7 @@ class FilrkView extends View
         return unless @autocomplete.hasSingleCompletionLeft()
 
         completion = @autocomplete.getLastCompletion()
-        @pathInput.val completion
+        @input.val completion
         @inputConfirmed()
 
     ###
@@ -208,10 +254,16 @@ class FilrkView extends View
     Section: display functions
     ###
 
+    # Public: clear label and container
+    clearLabel: ->
+        @commandLabel.text ''
+        @commandLabel.css 'margin-left', 0
+        @commandContainer.width 0
+
     # Public: clear input and hide autocomp popup
     clearInput: ->
         @autocomplete.cancel()
-        @pathInput.val ''
+        @input.val ''
 
     show: ->
         super.show()
@@ -219,7 +271,7 @@ class FilrkView extends View
 
     focus: ->
         @filePanel.renderList()
-        @pathInput.focus()
+        @input.focus()
 
     getFilePanelModel: ->
         @model
