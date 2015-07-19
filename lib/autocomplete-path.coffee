@@ -23,6 +23,7 @@ class AutocompletePath extends View
 
     # {JQuery} input to which autocomp is attached
     input: null
+
     # {JQuery}
     selectedElement: null
 
@@ -95,7 +96,7 @@ class AutocompletePath extends View
     # Returns nothing.
     setDir: (path) ->
         @system.cd path
-        Fs.readdir(@system.pwd(), @readdirCallback.bind(@))
+        @list = @system.list('.', base: true)
 
     # Public: cancels the popup
     cancel: =>
@@ -212,13 +213,3 @@ class AutocompletePath extends View
     # Public: get next completion
     getLastCompletion: () ->
         return @completions[@completions.length - 1]
-
-    # Private: callback for Fs.readdir
-    #
-    # Returns nothing.
-    readdirCallback: (err, files) ->
-        if err?
-            console.error err
-            @list = null
-        else
-            @list = files

@@ -37,9 +37,9 @@ class FilePanelView extends View
     ###
 
     model: null
-
     emitter: null
 
+    dirs: null
     files: null
 
     subscriptions: null
@@ -63,46 +63,41 @@ class FilePanelView extends View
         @emitter       = new Emitter
         @subscriptions = new CompositeDisposable
 
-        Object.observe(@model, @modelChanged.bind(@))
-
-        @files = @model.files
-        @renderFileList()
+        @model.on 'path-changed', @pathChanged.bind(@)
+        @model.on 'files-changed', @filesChanged.bind(@)
 
         if element?
             $(element).replaceWith @element
 
     registerInputCommands: (commands) ->
-        atom.commands.add '.command-bar .path-input', commands
+        atom.commands.add '.filrk .path-input', commands
 
     ###
     Section: model observation
     ###
-
-    modelChanged: (changes) ->
-        for change in changes
-            name = change.name
-            switch name
-                when 'path'  then @pathChanged()
-                when 'files' then @filesChanged()
 
     pathChanged: () ->
         @emit 'path-changed'
         # do nothing
 
     filesChanged: () ->
-        @emit 'files-changed'
+        @dirs = @model.dirs
         @files = @model.files
-        @renderFileList()
+
+        @renderList()
+        @emit 'files-changed'
 
     ###
     Section: rendering
     ###
 
-    renderFileList: ->
+    renderList: ->
         @listElement.empty()
-        for file in @files
-            icon = if file.isDir then 'file-directory' else 'file-text'
-            @listElement.append @constructor.createItem(file, icon)
+
+        for dir in @model.dirs
+            @listElement.append @constructor.createItem(dir, 'file-directory')
+        for file in @model.files
+            @listElement.append @constructor.createItem(file, 'file-text')
 
     ###
     Section: access/utils

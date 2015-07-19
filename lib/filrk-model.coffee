@@ -6,6 +6,7 @@ _       = require 'underscore-plus'
 Fs      = require 'fs-plus'
 Path    = require 'path'
 Glob    = require 'glob'
+Emitter = require('event-kit').Emitter
 
 {CompositeDisposable} = require 'atom'
 {$, $$, View} = require 'space-pen'
@@ -16,11 +17,13 @@ Op       = FileOp.Operation
 
 module.exports = class FilrkModel
 
+    emitter: null
+
     # Public: {String} path of the cwd
     path: null
 
     # Public: {Array} of files listed in file-panel
-    files: []
+    entries: []
 
     # Public: {Array} of selected paths
     selection: []
@@ -28,28 +31,46 @@ module.exports = class FilrkModel
     # Public: {System}
     sys: null
 
+    ###
+    Section: events
+    ###
+
+    emit: (args...) -> @emitter.emit args...
+    on:   (args...) -> @emitter.on args...
+    off:  (args...) -> @emitter.off args...
+
+    ###
+    Section: instance
+    ###
+
     constructor: (path) ->
-        @sys = new System('/')
+
+        @sys     = new System
+        @emitter = new Emitter
+
         @changeDir(path || atom.project.getPaths()[0] || process.cwd())
 
     changeDir: (path) ->
         newPath = @sys.resolve(@path || '', path)
         stats = @sys.f(newPath)
-        if stats.exists and stats.isDir
-            @path     = stats.path
-            @sys.cwd = stats.path
+        if stats.isDir
+            @path = stats.path
+            @sys.cd stats.path
             @processFiles()
+            @emit 'path-changed'
             return true
         else
             return false
 
     processFiles: ->
-        entries = @sys.statsList(@path)
+        @entries = @sys.statsList(@path)
 
-        dirs = _.filter entries, (e) -> e.isDir
-        rest = _.filter entries, (e) -> not e.isDir
+        @dirs  = _.filter @entries, (e) -> e.isDir
+        @files = _.filter @entries, (e) -> not e.isDir
 
-        @files = _.union(dirs, rest)
+        @entries = _.union(@dirs, @files)
+
+        @emit 'files-changed'
 
     getPath: ->
         return @path

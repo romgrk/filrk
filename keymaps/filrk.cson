@@ -12,6 +12,8 @@
     'ctrl-alt-p':     'filrk:toggle'
 
 '.filrk .path-input':
+    'escape': 'filrk:hide'
+
     'enter':      'core:confirm'
     'ctrl-enter': 'filrk:make-root'
     'ctrl-u':     'filrk:clear-input'
