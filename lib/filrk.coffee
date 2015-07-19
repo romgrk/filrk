@@ -21,6 +21,8 @@ module.exports = Filrk =
         @subscriptions = new CompositeDisposable
         @subscriptions.add atom.commands.add 'atom-workspace',
             'filrk:toggle': => @toggle()
+            'filrk:hide': => @hide()
+            'filrk:show': => @show()
 
         window.filrk = @
 
@@ -41,12 +43,19 @@ module.exports = Filrk =
 
     toggle: ->
         if @panel.isVisible()
-            @panel.hide()
-            @restoreFocus()
+            @hide()
         else
-            @storeFocusedElement()
-            @panel.show()
-            @filrkView.focus()
+            @show()
+
+    hide: ->
+        @panel.hide()
+        @restoreFocus()
+
+    show: ->
+        @storeFocusedElement()
+        @panel.show()
+        @filrkView.focus()
+
 
     storeFocusedElement: ->
         @previouslyFocusedElement = document.activeElement

@@ -9,10 +9,11 @@ Glob    = require 'glob'
 {CompositeDisposable} = require 'atom'
 {$, $$, View}         = require 'space-pen'
 
-Model            = require './filrk-model'
+Filrk            = require './filrk.coffee'
+FilePanelModel   = require './filrk-model.coffee'
 FilePanelView    = require './file-panel-view.coffee'
-FileOp           = require './operations'
-AutocompletePath = require './autocomplete-path'
+FileOp           = require './operations.coffee'
+AutocompletePath = require './autocomplete-path.coffee'
 
 Utils = require './utils.coffee'
 Path  = Utils.Path
@@ -33,11 +34,6 @@ class FilrkView extends View
             @div class: 'left-panel', =>
 
                 @div class: 'file-panel', outlet: 'filePanelDiv'
-                # @div class: 'file-panel select-list', outlet: 'filePanel', =>
-                #     @div class: 'file-panel-list', =>
-                #         @ul class: 'list-group', outlet: 'fileList', =>
-                #             @li class: '', '~/file.txt'
-                #             @li class: '', '~/git/otherfile.txt'
 
                 @div class: 'command-bar', =>
                     @div class: 'path-container', outlet: 'pathContainer', =>
@@ -152,12 +148,15 @@ class FilrkView extends View
 
         if Fs.isDirectorySync(newpath)
             @changeDir value
-        else
+        else if Fs.existsSync(newpath)
             atom.workspace.open newpath
+            @clearInput()
+            Filrk.hide()
+        else
+            console.log newpath
+            @clearInput()
+            # TODO propose to create dir
 
-        # TODO
-        # parse input to detect if path really exists
-        # if not, ask to create a dir/file with that name
 
     inputChanged: (event) ->
         text = @pathInput.val()
@@ -222,7 +221,7 @@ class FilrkView extends View
     focus: ->
         @pathInput.focus()
 
-    getModel: ->
+    getFilePanelModel: ->
         @model
 
     getElement: ->
