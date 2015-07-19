@@ -117,17 +117,15 @@ class AutocompletePath extends View
         completions = _.union(lists...)
 
         # Keep only directories
-        console.log completions
         completions = _.filter completions, @constructor.filterDirs, @
-        console.log completions
 
-        completions.unshift lead # lead is kept as candidate 0
+        # *lead* is kept as candidate 0
+        completions.unshift lead
 
         @completionIndex = 0
         @completions     = completions
 
         if @completions.length == 2
-            console.log @getLastCompletion()
             @emit 'single-match-left'
 
         @populateList(completions)
