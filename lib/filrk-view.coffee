@@ -60,6 +60,8 @@ class FilrkView extends View
 
     model: null
 
+    activePanel: null
+
     subscriptions: null
 
     # {AutocompletePath} instance
@@ -94,6 +96,9 @@ class FilrkView extends View
         @autocomplete.on 'single-match-left', =>
             @inputConfirmed() if FilrkView.singleMatchJumps
 
+
+        @activePanel = @model
+
         Object.observe(@model, @modelChanged.bind(@))
 
         @updatePath()
@@ -115,7 +120,7 @@ class FilrkView extends View
 
     # Public: retrieve path from model and render it
     updatePath: ->
-        path = @model.cwd
+        path = @activePanel.getPath()
         pathInfo = Path.parse path
 
         displayPath = Path.replaceHomeDirWithTilde(path)
@@ -193,7 +198,6 @@ class FilrkView extends View
     commandMakeRoot: ->
         @inputConfirmed()
         # @file
-
 
     ###
     Section: display functions

@@ -17,7 +17,7 @@ Op       = FileOp.Operation
 module.exports = class FilrkModel
 
     # Public: {String} path of the cwd
-    cwd: null
+    path: null
 
     # Public: {Array} of files listed in file-panel
     files: []
@@ -28,22 +28,20 @@ module.exports = class FilrkModel
     # Public: {System}
     sys: null
 
-    constructor: (cwd) ->
+    constructor: (path) ->
         @sys = new System('/')
-        @changeDir(cwd || atom.project.getPaths()[0] || process.cwd())
+        @changeDir(path || atom.project.getPaths()[0] || process.cwd())
 
     changeDir: (path) ->
-        newPath = @sys.resolve(@cwd || '', path)
+        newPath = @sys.resolve(@path || '', path)
         stats = @sys.f(newPath)
         if stats.exists and stats.isDir
-            @cwd     = stats.path
+            @path     = stats.path
             @sys.cwd = stats.path
-            @files = @sys.statsList(@cwd)
+            @files = @sys.statsList(@path)
             return true
         else
-            console.log 'couldnt switch to:', path
-            console.log 'newPath: ', newPath
-            console.log '@cwd: ', @cwd
-            console.log stats.exists, stats.isDir
-            console.log stats
             return false
+
+    getPath: ->
+        return @path
