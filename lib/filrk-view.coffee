@@ -86,6 +86,7 @@ class FilrkView extends View
 
         @pathInput.on('focus', @updatePath.bind(@))
         @pathInput.on('input', @inputChanged.bind(@))
+        # @pathInput.on('keydown', (e) => if e.key)
 
         @autocomplete.on 'single-match-left', =>
             @inputConfirmed() if FilrkView.singleMatchJumps
