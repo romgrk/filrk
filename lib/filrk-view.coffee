@@ -81,12 +81,10 @@ class FilrkView extends View
 
             'filrk:autocomplete-next': @completeCycle.bind @, 1
             'filrk:autocomplete-previous': @completeCycle.bind @, -1
-            # 'filrk:autocomplete-previous':  => @inputConfirmed()
-            # 'filrk:autocomplete-confirm':   => @inputConfirmed()
+            'filrk:clear-input': @clearInput.bind(@)
 
         @pathInput.on('focus', @updatePath.bind(@))
         @pathInput.on('input', @inputChanged.bind(@))
-        # @pathInput.on('keydown', (e) => if e.key)
 
         @autocomplete.on 'single-match-left', =>
             @inputConfirmed() if FilrkView.singleMatchJumps
@@ -196,6 +194,7 @@ class FilrkView extends View
         @clearInput() if success
         return success
 
+    # Public: clear input and hide autocomp popup
     clearInput: ->
         @autocomplete.cancel()
         @pathInput.val ''
