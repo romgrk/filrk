@@ -109,7 +109,7 @@ class FilrkView extends View
         atom.commands.add '.filrk .path-input', commands
 
     ###
-    Section: model observation
+    Section: TODO name
     ###
 
     findMode:
@@ -155,7 +155,7 @@ class FilrkView extends View
             @commandContainer.css 'width':   containerWidth
             @commandLabel.css 'margin-left': labelOffset
 
-    # Public: retrieve path from model and render it
+    # Private: retrieve path from model and render it
     updatePath: ->
         path = @activePanel.getPath()
         @autocomplete.setCandidates @activePanel.getModel().getList()
@@ -186,8 +186,6 @@ class FilrkView extends View
     ###
 
     inputConfirmed: ->
-        @autocomplete.cancel()
-
         value = @input.val()
         newpath = Path.resolve @activePanel.getPath(), value
 
@@ -201,6 +199,8 @@ class FilrkView extends View
             console.log newpath
             @clearInput()
             # TODO propose to create dir
+
+        @autocomplete.clear()
 
 
     inputChanged: (event) ->

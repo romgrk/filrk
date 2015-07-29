@@ -15,6 +15,7 @@ Emitter = require('event-kit').Emitter
 Path     = require('./utils').Path
 {System} = require './system'
 
+# TODO separate view/model/provider
 module.exports =
 class AutocompletePath extends View
 
@@ -30,10 +31,7 @@ class AutocompletePath extends View
     # File system manipulator
     system: null
 
-    # Dir where to look for files
-    dir: null
-
-    # Files in *path*
+    # List of {Strings}: Candidates for completion
     list: null
 
     # List of {Strings}: Completion candidates in order
@@ -42,11 +40,13 @@ class AutocompletePath extends View
     # {Integer} Index, to cycle to completion list
     completionIndex: 0
 
-    # Filter dirs
-    onlyDirectories: false
+    ## Options
 
-    # Set to true to use input text as the complete path
-    useValueAsPath: false
+    caseSensitiveCompletion: false
+
+    onlyDirectories: false # Filter dirs
+
+    useValueAsPath: false # Use input text as lead
 
     ###
     Section: elements
@@ -93,9 +93,18 @@ class AutocompletePath extends View
     setCandidates: (list) ->
         @list = list
 
-    # Public: cancels the popup
+    # Public: cancels the popup and restores input
     cancel: =>
+        @input.val @lead
         @hide()
+
+    # Public: hide and reset
+    clear: ->
+        @hide()
+        @listElement.empty()
+        @list = null
+        @lead = null
+        @completions = null
 
     ###
     Section: completion functions
@@ -106,8 +115,14 @@ class AutocompletePath extends View
     # Returns nothing.
     completeLead: (lead) =>
         unless @list? and @list.length > 0
-            @cancel()
+            @hide()
             return
+
+        if lead is ''
+            @hide()
+            return
+
+        @lead = lead
 
         lowerCaseLead = lead.toLowerCase()
 
@@ -125,7 +140,7 @@ class AutocompletePath extends View
 
         # Keep only directories
         if @onlyDirectories
-            completions = _.filter completions, @filterDir, @
+            completions = _.filter completions, @isDir, @
 
         # *lead* is kept as candidate 0
         completions.unshift lead
@@ -156,7 +171,7 @@ class AutocompletePath extends View
     Section: filters
     ###
 
-    filterDir: (path) ->
+    isDir: (path) ->
         console.log path, @system.isDir(path)
         return @system.isDir(path)
 

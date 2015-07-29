@@ -9,7 +9,8 @@
 
 @panel-background: @tool-panel-background-color;
 
-@panel-bg:     rgba(255, 255, 255, 0.1);
+// @panel-bg:     rgba(255, 255, 255, 0.6);
+@panel-bg:     @overlay-background-color;
 @panel-border: black;
 
 // @file-panel-bg:  rgba(255, 255, 255, 0.7);
@@ -37,16 +38,17 @@ atom-panel.filrk-panel {
     position: absolute;
 
     top:     50px;
-    right:   20px;
+    right:   100px;
     z-index: 5000;
 
     width: 700px;
     height: 60%;
     margin: auto;
+    padding: 10px;
 
-    // background: @panel-bg;
+    background: @panel-bg;
     border:     1px solid @panel-border;
-    box-shadow: 0px 0px 25px 10px fade(#000000, 30%);
+    box-shadow: 0px 0px 50px 50px fade(#000000, 30%);
 }
 
 .filrk {
