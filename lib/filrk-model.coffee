@@ -15,6 +15,7 @@ FileOp   = require './operations'
 Op       = FileOp.Operation
 {System} = new require './system'
 
+# TODO refactor. Represents file-panel model
 module.exports = class FilrkModel
 
     emitter: null
