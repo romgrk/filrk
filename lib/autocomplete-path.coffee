@@ -201,6 +201,9 @@ class AutocompletePath extends View
                 element.css 'display': 'none'
             @listElement.append(element)
 
+        if items.length is 2
+            @selectItem 1
+            
         unless @isVisible()
             @show()
 
@@ -220,6 +223,10 @@ class AutocompletePath extends View
     hasSingleCompletionLeft: ->
         @completions? and @completions.length is 2
 
-    # Public: get next completion
+    # Public: get first completion
+    getFirstCompletion: () ->
+        return @completions[1]
+
+    # Public: get last completion
     getLastCompletion: () ->
         return @completions[@completions.length - 1]

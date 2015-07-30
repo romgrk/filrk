@@ -189,19 +189,19 @@ class FilrkView extends View
         value = @input.val()
         newpath = Path.resolve @activePanel.getPath(), value
 
+        @autocomplete.hide()
+
         if Fs.isDirectorySync(newpath)
             @changeDir value
+        else if @autocomplete.hasSingleCompletionLeft()
+            @changeDir @autocomplete.getLastCompletion()
         else if Fs.existsSync(newpath)
             atom.workspace.open newpath
-            @clearInput()
             atom.packages.getActivePackage('filrk').mainModule.hide()
         else
-            console.log newpath
-            @clearInput()
             # TODO propose to create dir
 
-        @autocomplete.clear()
-
+        @clearInput()
 
     inputChanged: (event) ->
         text = @input.val()
@@ -218,7 +218,7 @@ class FilrkView extends View
 
     inputKeydown: (event) ->
         return if event.repeat
-        return unless event.keyCode is 8
+        return unless event.keyCode is 8 # backspace
         return unless @input.val() is ''
 
         @changeDir '..'
@@ -229,7 +229,7 @@ class FilrkView extends View
         return unless FilrkView.completeSingleMatchJumps
         return unless @autocomplete.hasSingleCompletionLeft()
 
-        completion = @autocomplete.getLastCompletion()
+        completion = @autocomplete.getFirstCompletion()
         @input.val completion
         @inputConfirmed()
 
