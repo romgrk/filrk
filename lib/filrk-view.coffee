@@ -196,6 +196,11 @@ class FilrkView extends View
         else if Fs.existsSync(newpath)
             atom.workspace.open newpath
             atom.packages.getActivePackage('filrk').mainModule.hide()
+        else if @autocomplete.hasSingleCompletionLeft()
+            completion = @autocomplete.getFirstCompletion()
+            return unless completion isnt value
+            @input.val completion
+            @inputConfirmed()
         else
             # TODO propose to create dir
 
