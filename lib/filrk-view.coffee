@@ -193,8 +193,6 @@ class FilrkView extends View
 
         if Fs.isDirectorySync(newpath)
             @changeDir value
-        else if @autocomplete.hasSingleCompletionLeft()
-            @changeDir @autocomplete.getLastCompletion()
         else if Fs.existsSync(newpath)
             atom.workspace.open newpath
             atom.packages.getActivePackage('filrk').mainModule.hide()
