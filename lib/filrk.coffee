@@ -8,15 +8,16 @@ FilrkView = require './filrk-view'
 module.exports = Filrk =
 
     panel:     null
-    panelView: null
+    panelElement: null
+
     filrkView: null
+
     subscriptions: null
 
     activate: (state) ->
         @filrkView = new FilrkView(state.filrkViewState)
 
         @panel     = @createPanel(@filrkView.getElement())
-        @panelView = @createPanelView(@panel)
 
         @subscriptions = new CompositeDisposable
         @subscriptions.add atom.commands.add 'atom-workspace',
@@ -27,14 +28,10 @@ module.exports = Filrk =
         window.filrk = @
 
     createPanel: (element) ->
-        atom.workspace.addModalPanel(item: element, visible: false)
-
-    createPanelView: (panel) ->
-        panelView = $(atom.views.getView(panel))
-        panelView.addClass 'filrk-panel'
-        panelView.removeClass 'modal overlay'
-        panelView.removeClass 'from-top'
-        return panelView
+        panel = atom.workspace.addModalPanel(item: element, visible: false)
+        @panelElement = atom.views.getView(panel)
+        @panelElement.classList.add 'filrk-panel'
+        return panel
 
     deactivate: ->
         @subscriptions.dispose()
